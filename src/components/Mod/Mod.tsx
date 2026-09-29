@@ -60,7 +60,7 @@ function Mod({modName, fileName, variant}: { modName: string, fileName: string, 
 
     return (
         <div
-            className={`${color} h-30 relative flex flex-col items-center justify-center text-black font-bold rounded-lg border-3 border-white shadow-2xl`}>
+            className={`${color} h-30 relative flex flex-col items-center justify-center text-black font-bold rounded-lg border-3 border-white shadow-2xl ${isChanged ? "border-red-500!": ""}`}>
             {isEditing ? (
                 <input
                     value={inputValue}
