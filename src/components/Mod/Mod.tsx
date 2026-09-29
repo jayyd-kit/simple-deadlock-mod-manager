@@ -10,11 +10,12 @@ import {useModManageStore} from "../../stores/useModManageStore.ts";
 function Mod({modName, fileName, variant}: { modName: string, fileName: string, variant: ModTabVariant }) {
     const {setVisible, setError} = useErrorStore();
     const colors = ["bg-gunItem", "bg-vitalityItem", "bg-spiritItem"];
-    const {changeModName, addSelectedMod, removeSelectedMod, selectedMods} = useModsStore();
+    const {changeModName, addSelectedMod, removeSelectedMod, selectedMods, changedMods} = useModsStore();
     //const {setFileName, setUserName, setModalOpen} = useDeleteStore();
     const {setUserName, setFileName, setModManageModalOpen} = useModManageStore();
     const checkboxRef = useRef<HTMLInputElement>(null);
     const [selected, setSelected] = useState(false)
+    const [isChanged, setIsChanged] = useState<boolean>(false);
 
     const [isEditing, setIsEditing] = useState(false);
     const [inputValue, setInputValue] = useState(modName);
@@ -23,9 +24,16 @@ function Mod({modName, fileName, variant}: { modName: string, fileName: string, 
         setInputValue(modName);
     }, [modName]);
 
+    useEffect(() => {
+        setIsChanged(changedMods.some((x) => x.fileName === fileName));
+    }, [changedMods]);
+
     const [color] = useState(colors[Math.floor(Math.random() * colors.length)]);
 
     const onManageClick = () => {
+        if (isChanged) {
+            return;
+        }
         setUserName(modName);
         setFileName(fileName);
         setModManageModalOpen(true);
@@ -87,7 +95,7 @@ function Mod({modName, fileName, variant}: { modName: string, fileName: string, 
                 />
             ) : (
                 <div onDoubleClick={() => {
-                    if (selected) {
+                    if (isChanged) {
                         return;
                     }
                     setIsEditing(true)
@@ -123,7 +131,8 @@ function Mod({modName, fileName, variant}: { modName: string, fileName: string, 
             </div>
             <div className="absolute top-2 left-2">
                 <button
-                    className="bg-blue-800/80 hover:bg-blue-800 active:bg-blue-950 transition-colors duration-200 rounded-lg p-0.5"
+                    disabled={isChanged}
+                    className="bg-blue-800/80 hover:bg-blue-800 active:bg-blue-950 disabled:bg-black transition-colors duration-200 rounded-lg p-0.5"
                     onClick={onManageClick}>
                     <Settings htmlColor={"#FFFFFF"}/></button>
             </div>
