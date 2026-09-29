@@ -17,10 +17,10 @@ function Mod({modName, fileName, variant}: { modName: string, fileName: string, 
     const [selected, setSelected] = useState(false)
 
     const [isEditing, setIsEditing] = useState(false);
-    const [value, setValue] = useState(modName);
+    const [inputValue, setInputValue] = useState(modName);
 
     useEffect(() => {
-        setValue(modName);
+        setInputValue(modName);
     }, [modName]);
 
     const [color] = useState(colors[Math.floor(Math.random() * colors.length)]);
@@ -55,16 +55,16 @@ function Mod({modName, fileName, variant}: { modName: string, fileName: string, 
             className={`${color} h-30 relative flex flex-col items-center justify-center text-black font-bold rounded-lg border-3 border-white shadow-2xl`}>
             {isEditing ? (
                 <input
-                    value={value}
+                    value={inputValue}
                     autoFocus
-                    onChange={(e) => setValue(e.target.value)}
+                    onChange={(e) => setInputValue(e.target.value)}
                     onBlur={async () => {
-                        if (value === "") {
-                            setValue(fileName);
+                        if (inputValue === "") {
+                            setInputValue(fileName);
                         }
                         setIsEditing(false)
                         try {
-                            await changeModName(value, fileName)
+                            await changeModName(inputValue, fileName)
                         } catch (error) {
                             setVisible(true);
                             setError(error as string);
@@ -72,12 +72,12 @@ function Mod({modName, fileName, variant}: { modName: string, fileName: string, 
                     }}
                     onKeyDown={async (e) => {
                         if (e.key === "Enter") {
-                            if (value === "") {
-                                setValue(fileName);
+                            if (inputValue === "") {
+                                setInputValue(fileName);
                             }
                             setIsEditing(false);
                             try {
-                                await changeModName(value, fileName)
+                                await changeModName(inputValue, fileName)
                             } catch (error) {
                                 setVisible(true);
                             }
@@ -86,11 +86,16 @@ function Mod({modName, fileName, variant}: { modName: string, fileName: string, 
                     className="bg-transparent text-center outline-none border"
                 />
             ) : (
-                <div onDoubleClick={() => setIsEditing(true)} className={"w-full text-center px-2"}>
+                <div onDoubleClick={() => {
+                    if (selected) {
+                        return;
+                    }
+                    setIsEditing(true)
+                }} className={"w-full text-center px-2"}>
                     <Tooltip title={"Double click to edit name"}>
                         <div>
                             <Textfit mode={"multi"} max={25}>
-                                {value}
+                                {inputValue}
                             </Textfit>
                         </div>
                     </Tooltip>
