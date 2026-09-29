@@ -33,12 +33,12 @@ function Mod({modName, fileName, variant}: { modName: string, fileName: string, 
 
 
     const onSelect = (checkbox: HTMLInputElement) => {
-        if (selectedMods.filter((f) => (f.variant !== variant)).length > 0) {
+        if (selectedMods.filter((f) => (f.variant !== variant)).length > 0) { // can't select two mods from different categories
             checkbox.checked = !checkbox.checked;
             return;
         }
         checkbox.checked = !checkbox.checked;
-        switch (selected) {
+        switch (selected) { // value before clicking
             case true:
                 removeSelectedMod({variant, fileName, userName: modName})
                 setSelected(false)
