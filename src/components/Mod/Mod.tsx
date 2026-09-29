@@ -52,13 +52,7 @@ function Mod({modName, fileName, variant}: { modName: string, fileName: string, 
 
     return (
         <div
-            className={`${color} h-30 relative flex flex-col items-center justify-center text-black font-bold rounded-lg border-3 border-white shadow-2xl`}
-            onClick={(e) => {
-                e.stopPropagation()
-                if (checkboxRef.current) {
-                    onSelect(checkboxRef.current)
-                }
-            }}>
+            className={`${color} h-30 relative flex flex-col items-center justify-center text-black font-bold rounded-lg border-3 border-white shadow-2xl`}>
             {isEditing ? (
                 <input
                     value={value}
