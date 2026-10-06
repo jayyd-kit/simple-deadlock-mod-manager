@@ -2,7 +2,7 @@
 
 [![AUR](https://img.shields.io/aur/version/simple-deadlock-mod-manager?logo=archlinux)](https://aur.archlinux.org/packages/simple-deadlock-mod-manager/)
 [![AUR-GIT](https://img.shields.io/aur/version/simple-deadlock-mod-manager-git?logo=archlinux)](https://aur.archlinux.org/packages/simple-deadlock-mod-manager-git/)
-[![Gamebanana](https://img.shields.io/badge/Gamebanana-0.6.3-yellow?logo=gamebanana)](https://gamebanana.com/tools/22154)
+[![Gamebanana](https://img.shields.io/badge/Gamebanana-0.6.4-yellow?logo=gamebanana)](https://gamebanana.com/tools/22154)
 
 ![Trans Ware](https://pride-badges.pony.workers.dev/static/v1?label=Trans%20Ware&stripeWidth=6&stripeColors=5BCEFA,F5A9B8,FFFFFF,F5A9B8,5BCEFA)
 
@@ -33,7 +33,7 @@ Go to the [Releases Page](https://github.com/Gabri3445/simple-deadlock-mod-manag
 
 #### Arch (using pacman/yay/paru)
 
-- Run `yay -S simple-deadlock-mod-manager` (pushes to the AUR are not allowed at the moment, please use the AppImage)
+- Run `yay -S simple-deadlock-mod-manager`
 - Or run `yay -S simple-deadlock-mod-manager-git` (outdated)
 
 #### All of the above and any other distro
