@@ -1,6 +1,6 @@
 [package]
 name = "simple-deadlock-mod-manager"
-version = "0.6.3"
+version = "0.6.4"
 description = "A simple Mod Manager for Deadlock"
 authors = ["gabri3445"]
 edition = "2021"
