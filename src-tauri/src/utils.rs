@@ -1,11 +1,11 @@
-use crate::config::ModManagerConfig;
+use crate::config::ModManagerConfigV1;
 use crate::types::{ModName, Mods};
 use regex::Regex;
 use std::path::{Path, PathBuf};
 use std::sync::MutexGuard;
 
 pub fn update_config_mod_name(
-    config: &mut MutexGuard<ModManagerConfig>,
+    config: &mut MutexGuard<ModManagerConfigV1>,
     mod_name: &ModName,
     new_name: String,
 ) {
@@ -38,7 +38,7 @@ pub fn is_deadlock_path_valid(deadlock_path: &String) -> bool {
 /// Mods that match the VALID_MOD_REGEX (see commands.rs) get put in the loaded_mods array
 pub fn process_mod_directory(
     mod_path: &Path,
-    config: &mut ModManagerConfig,
+    config: &mut ModManagerConfigV1,
 ) -> Result<Mods, String> {
     let regex = Regex::new(crate::commands::VALID_MOD_REGEX).unwrap();
     let mut result = Mods::default();

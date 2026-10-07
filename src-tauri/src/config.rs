@@ -10,26 +10,47 @@ another hashmap with <file name, gamebanana link>
 if the mod is not linked the value should be ""
  */
 #[derive(Default, Deserialize, Serialize, Clone)]
-pub struct ModManagerConfig {
+pub struct ModManagerConfigV1 {
     #[serde(default = "v1_version_default")]
     pub version: String,
     pub deadlock_path: String,
     pub mod_names: HashMap<String, String>,
 }
 
+#[derive(Default, Deserialize, Serialize, Clone)]
+pub struct ModManagerConfigV2 {
+    #[serde(default = "v2_version_default")]
+    pub version: String,
+    pub deadlock_path: String,
+    pub mods: Vec<Mods>,
+    /// Keys are the preset name, values are the mods
+    pub presets: HashMap<String, Mods>
+}
+
+#[derive(Clone, Default, Deserialize, Serialize)]
+pub struct Mods {
+    pub file_name: String,
+    pub user_name: String,
+    pub id: String,
+    pub is_loaded: bool,
+}
+
 fn v1_version_default() -> String {
     "1".to_string()
+}
+fn v2_version_default() -> String {
+    "2".to_string()
 }
 
 pub struct ConfigState {
     pub config_path: PathBuf,
     pub cache_path: PathBuf,
-    pub config: Mutex<ModManagerConfig>,
+    pub config: Mutex<ModManagerConfigV2>,
 }
 
 pub fn save_config(
     config_state: &ConfigState,
-) -> Result<ModManagerConfig, Box<dyn std::error::Error>> {
+) -> Result<ModManagerConfigV1, Box<dyn std::error::Error>> {
     let config = config_state.config.lock().map_err(|_| {
         log::error!("Config lock is poisoned.");
         "couldn't acquire config lock"
@@ -51,7 +72,7 @@ pub fn save_config(
     Ok(config.clone())
 }
 
-pub fn load_config() -> Result<ModManagerConfig, Box<dyn std::error::Error>> {
+pub fn load_config() -> Result<ModManagerConfigV2, Box<dyn std::error::Error>> {
     let mut config_path = PathBuf::new();
     let mut cache_path = PathBuf::new();
     if let Some(proj_dirs) = ProjectDirs::from("", "sdmm", "sdmm") {
@@ -85,7 +106,7 @@ pub fn load_config() -> Result<ModManagerConfig, Box<dyn std::error::Error>> {
     }
     if !config_path.exists() {
         log::warn!("Config does not exist, creating default config");
-        let default_config = ModManagerConfig::default();
+        let default_config = ModManagerConfigV2::default();
         save_config(&ConfigState {
             config_path,
             cache_path,

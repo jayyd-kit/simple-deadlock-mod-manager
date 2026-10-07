@@ -1,4 +1,4 @@
-use crate::config::{save_config, ConfigState, ModManagerConfig};
+use crate::config::{save_config, ConfigState, ModManagerConfigV1};
 use crate::gamebanana_api::api::{download_mod, get_mod_files};
 use crate::gamebanana_api::types::FileEntry;
 use crate::types::{CompressedFileType, ModName, Mods, Operation};
@@ -85,7 +85,7 @@ pub fn get_auto_detect_deadlock_path() -> Result<String, String> {
 }
 
 #[tauri::command]
-pub fn get_config(state: State<ConfigState>) -> Result<ModManagerConfig, String> {
+pub fn get_config(state: State<ConfigState>) -> Result<ModManagerConfigV1, String> {
     Ok(state.config.lock().map_err(|e| e.to_string())?.clone())
 }
 
