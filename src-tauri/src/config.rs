@@ -1,9 +1,9 @@
+use crate::utils::check_mod_loaded;
 use directories::ProjectDirs;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::path::PathBuf;
 use std::sync::Mutex;
-
 /*
 todo: could link each mod to a gamebanana link to check for updates
 another hashmap with <file name, gamebanana link>
@@ -24,7 +24,7 @@ pub struct ModManagerConfigV2 {
     pub deadlock_path: String,
     pub mods: Vec<Mods>,
     /// Keys are the preset name, values are the mods
-    pub presets: HashMap<String, Mods>
+    pub presets: HashMap<String, Mods>,
 }
 
 #[derive(Clone, Default, Deserialize, Serialize)]
@@ -50,7 +50,7 @@ pub struct ConfigState {
 
 pub fn save_config(
     config_state: &ConfigState,
-) -> Result<ModManagerConfigV1, Box<dyn std::error::Error>> {
+) -> Result<ModManagerConfigV2, Box<dyn std::error::Error>> {
     let config = config_state.config.lock().map_err(|_| {
         log::error!("Config lock is poisoned.");
         "couldn't acquire config lock"
@@ -118,9 +118,45 @@ pub fn load_config() -> Result<ModManagerConfigV2, Box<dyn std::error::Error>> {
         log::error!("Could not read config file");
         "Could not read config file"
     })?;
-    let config = serde_json::from_str::<ModManagerConfig>(&contents).map_err(|_| {
+
+    match serde_json::from_str::<ModManagerConfigV1>(&contents) {
+        Ok(config_V1) => {
+            //upgrade to v2
+            let mut result: Vec<Mods> = Vec::default();
+            log::warn!("Updating config to V2");
+            config_V1.mod_names.iter().for_each(|mod_name| {
+                let is_loaded = check_mod_loaded(mod_name.clone().0);
+                result.push(Mods {
+                    file_name: mod_name.0.to_string(),
+                    user_name: mod_name.1.to_string(),
+                    is_loaded,
+                    id: "".to_string(),
+                })
+            });
+            let config = ModManagerConfigV2 {
+                mods: result,
+                presets: HashMap::default(),
+                version: "2".to_string(),
+                deadlock_path: "".to_string(),
+            };
+            save_config(&ConfigState {
+                config_path,
+                cache_path,
+                config: Mutex::new(config.clone()),
+            })?;
+            return Ok(config);
+        }
+        Err(_) => {
+            //probably means the config is v2
+        }
+    }
+    let config = serde_json::from_str::<ModManagerConfigV2>(&contents).map_err(|_| {
         log::error!("Could not parse config file");
         "Could not parse config file"
     })?;
     Ok(config)
 }
+/*let config = serde_json::from_str::<ModManagerConfigV1>(&contents).map_err(|_| {
+log::error!("Could not parse config file");
+"Could not parse config file"
+})?;*/
