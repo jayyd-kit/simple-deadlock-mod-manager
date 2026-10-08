@@ -126,12 +126,13 @@ pub fn load_config() -> Result<ModManagerConfigV2, Box<dyn std::error::Error>> {
         "Could not read config file"
     })?;
 
+    //try to read it with the V1 spec
     match serde_json::from_str::<ModManagerConfigV1>(&contents) {
         Ok(config_V1) => {
-            //upgrade to v2
+            //upgrade to V2
             let mut result: Vec<Mod> = Vec::default();
             log::warn!("Updating config to V2");
-            config_V1.mod_names.iter().for_each(|mod_name| {
+            config_V1.mod_names.iter().for_each(|mod_name| { //convert to hashmap to array of Mod
                 let is_loaded = is_mod_loaded(mod_name.clone().0);
                 result.push(Mod {
                     file_name: mod_name.0.to_string(),
@@ -154,7 +155,7 @@ pub fn load_config() -> Result<ModManagerConfigV2, Box<dyn std::error::Error>> {
             return Ok(config);
         }
         Err(_) => {
-            //probably means the config is v2
+            //probably means the config is v2, or malformed file
         }
     }
     let config = serde_json::from_str::<ModManagerConfigV2>(&contents).map_err(|_| {

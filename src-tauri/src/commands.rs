@@ -2,9 +2,8 @@ use crate::config::{save_config, ConfigState, Mod, ModManagerConfigV2};
 use crate::gamebanana_api::api::{download_mod, get_mod_files};
 use crate::gamebanana_api::types::FileEntry;
 use crate::types::{CompressedFileType, ModName, Mods, ModOperation};
-use crate::utils::{is_deadlock_path_valid, is_mod_loaded, list_vpk_files, process_mod_directory, update_config_mod_name};
+use crate::utils::{is_deadlock_path_valid, is_mod_loaded, list_vpk_files, process_mod_directory, update_config_mod_file_name};
 use rand::RngExt;
-use regex::bytes::Regex;
 use serde::Serialize;
 use std::fs::DirEntry;
 use std::path::PathBuf;
@@ -313,7 +312,7 @@ pub fn apply_changes(
                                 if !new_path.exists() {
                                     std::fs::rename(entry.path(), new_path)
                                         .map_err(|e| e.to_string())?;
-                                    update_config_mod_name(&mut config, &mod_to_load, new_name, ModOperation::LoadMods);
+                                    update_config_mod_file_name(&mut config, &mod_to_load, new_name, ModOperation::LoadMods);
                                     break;
                                 }
                                 if pak_number > 99 {
@@ -360,7 +359,7 @@ pub fn apply_changes(
                                 )
                             );
                             std::fs::rename(entry.path(), new_path).map_err(|e| e.to_string())?;
-                            update_config_mod_name(&mut config, &mod_to_unload, new_name, ModOperation::UnloadMods);
+                            update_config_mod_file_name(&mut config, &mod_to_unload, new_name, ModOperation::UnloadMods);
                         }
                     }
                 }

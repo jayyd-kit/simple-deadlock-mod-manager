@@ -5,7 +5,9 @@ use std::path::{Path, PathBuf};
 use std::sync::MutexGuard;
 
 
-pub fn update_config_mod_name(
+
+/// Updates the file name in the config when it is changed (load/unload)
+pub fn update_config_mod_file_name(
     config: &mut MutexGuard<ModManagerConfigV2>,
     mod_name: &ModName,
     new_name: String,
@@ -53,18 +55,20 @@ pub fn process_mod_directory(
     let mut result = Mods::default();
 
     if mod_path.is_dir() {
-        for entry in std::fs::read_dir(mod_path).map_err(|e| e.to_string())? {
+        for entry in std::fs::read_dir(mod_path).map_err(|e| e.to_string())? { //read dir
             let entry = entry.map_err(|e| e.to_string())?;
-            if entry.file_type().map_err(|e| e.to_string())?.is_file() {
+            if entry.file_type().map_err(|e| e.to_string())?.is_file() { //we only care if it is a file
                 let file_name = entry.file_name().to_string_lossy().into_owned();
 
                 // If the user has specified a name then load that
                 let user_name = if let Some(existing_mod) = config.mods.iter().find(|m| m.file_name == file_name) {
                     existing_mod.user_name.clone()
-                } else {
+                } else { //otherwise default the username to the filename
+                    let is_loaded = is_mod_loaded(&*file_name);
                     config.mods.push(Mod {
                         file_name: file_name.clone(),
                         user_name: file_name.clone(),
+                        is_loaded,
                         ..Default::default()
                     });
 
