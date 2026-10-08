@@ -1,4 +1,4 @@
-import {applyChanges, changeModName, listMods, ModName, Mods, Operation} from "../generated";
+import {applyChanges, changeModName, listMods, ModName, Mods, ModOperation} from "../generated";
 import {create} from "zustand";
 import {ModTabVariant} from "../components/ModTab/ModTab.tsx";
 
@@ -9,7 +9,7 @@ interface SelectedMod {
 }
 
 interface ChangedMod {
-    operation: Operation,
+    operation: ModOperation,
     fileName: string,
     userName: string,
 }
@@ -87,7 +87,7 @@ export const useModsStore = create<ModsStore>((set, get) => ({
             let changed = [...state.changedMods];
 
             selectedMods.forEach((mod) => {
-                let operation: Operation;
+                let operation: ModOperation;
 
                 if (mod.variant === ModTabVariant.LoadedMods) {
                     // move from loaded -> unloaded
