@@ -57,8 +57,6 @@ const FILESYSTEM_BLOCK_CONTENTS: &str = r#"FileSystem
     LegacyUserSettingsPathID "MOD"
 }"#;
 
-pub(crate) const VALID_MOD_REGEX: &str = r"^pak\d\d_dir\.vpk";
-
 /// Get the path to the Deadlock game installation directory
 #[tauri::command]
 pub fn get_auto_detect_deadlock_path() -> Result<String, String> {

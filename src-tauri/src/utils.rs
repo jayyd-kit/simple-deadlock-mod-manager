@@ -4,6 +4,7 @@ use regex::Regex;
 use std::path::{Path, PathBuf};
 use std::sync::MutexGuard;
 
+
 pub fn update_config_mod_name(
     config: &mut MutexGuard<ModManagerConfigV1>,
     mod_name: &ModName,
@@ -40,7 +41,6 @@ pub fn process_mod_directory(
     mod_path: &Path,
     config: &mut ModManagerConfigV1,
 ) -> Result<Mods, String> {
-    let regex = Regex::new(crate::commands::VALID_MOD_REGEX).unwrap();
     let mut result = Mods::default();
 
     if mod_path.is_dir() {
@@ -65,7 +65,7 @@ pub fn process_mod_directory(
                     file_name: file_name.clone(),
                 };
 
-                if regex.is_match(&file_name) {
+                if check_mod_loaded(&file_name) {
                     result.loaded_mods.push(mod_name);
                 } else if entry.path().extension().map_or(false, |ext| ext == "vpk") {
                     result.unloaded_mods.push(mod_name);
@@ -91,4 +91,11 @@ pub fn list_vpk_files(path: PathBuf, result: &mut Vec<String>) -> Result<(), Str
         }
     };
     Ok(())
+}
+
+pub(crate) const VALID_MOD_REGEX: &str = r"^pak\d\d_dir\.vpk";
+
+pub fn check_mod_loaded(mod_name: &str) -> bool {
+    let regex = Regex::new(VALID_MOD_REGEX).unwrap();
+    regex.is_match(mod_name)
 }
