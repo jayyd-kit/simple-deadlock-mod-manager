@@ -3,8 +3,7 @@ use crate::types::{ModName, ModOperation, Mods};
 use regex::Regex;
 use std::path::{Path, PathBuf};
 use std::sync::MutexGuard;
-
-
+use uuid::Uuid;
 
 /// Updates the file name in the config when it is changed (load/unload)
 pub fn update_config_mod_file_name(
@@ -69,7 +68,7 @@ pub fn process_mod_directory(
                         file_name: file_name.clone(),
                         user_name: file_name.clone(),
                         is_loaded,
-                        ..Default::default()
+                        id: generate_mod_id(),
                     });
 
                     file_name.clone()
@@ -113,4 +112,8 @@ pub(crate) const VALID_MOD_REGEX: &str = r"^pak\d\d_dir\.vpk";
 pub fn is_mod_loaded(mod_file_name: &str) -> bool {
     let regex = Regex::new(VALID_MOD_REGEX).unwrap();
     regex.is_match(mod_file_name)
+}
+
+pub fn generate_mod_id() -> String {
+    Uuid::new_v4().to_string()
 }

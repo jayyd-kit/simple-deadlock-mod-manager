@@ -1,4 +1,4 @@
-use crate::utils::is_mod_loaded;
+use crate::utils::{generate_mod_id, is_mod_loaded};
 use directories::ProjectDirs;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -138,7 +138,7 @@ pub fn load_config() -> Result<ModManagerConfigV2, Box<dyn std::error::Error>> {
                     file_name: mod_name.0.to_string(),
                     user_name: mod_name.1.to_string(),
                     is_loaded,
-                    id: "".to_string(),
+                    id: generate_mod_id(),
                 })
             });
             let config = ModManagerConfigV2 {
@@ -162,6 +162,7 @@ pub fn load_config() -> Result<ModManagerConfigV2, Box<dyn std::error::Error>> {
         log::error!("Could not parse config file");
         "Could not parse config file"
     })?;
+
     Ok(config)
 }
 /*let config = serde_json::from_str::<ModManagerConfigV1>(&contents).map_err(|_| {

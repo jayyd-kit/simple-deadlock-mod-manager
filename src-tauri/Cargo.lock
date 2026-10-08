@@ -4616,6 +4616,7 @@ dependencies = [
  "tauri-typegen",
  "unrar",
  "url",
+ "uuid",
  "valve_pak",
  "wgpu",
  "zip",

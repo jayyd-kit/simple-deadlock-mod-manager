@@ -2,7 +2,7 @@ use crate::config::{save_config, ConfigState, Mod, ModManagerConfigV2};
 use crate::gamebanana_api::api::{download_mod, get_mod_files};
 use crate::gamebanana_api::types::FileEntry;
 use crate::types::{CompressedFileType, ModName, Mods, ModOperation};
-use crate::utils::{is_deadlock_path_valid, is_mod_loaded, list_vpk_files, process_mod_directory, update_config_mod_file_name};
+use crate::utils::{generate_mod_id, is_deadlock_path_valid, is_mod_loaded, list_vpk_files, process_mod_directory, update_config_mod_file_name};
 use rand::RngExt;
 use serde::Serialize;
 use std::fs::DirEntry;
@@ -422,7 +422,7 @@ pub fn copy_mod_to_game(
                     file_name: fname.clone(),
                     user_name: user_name.unwrap().to_string(),
                     is_loaded: false,
-                    id: "".to_string(),
+                    id: generate_mod_id(),
                 });
         }
     }
