@@ -421,7 +421,6 @@ pub fn copy_mod_to_game(
                 .push(Mod {
                     file_name: fname.clone(),
                     user_name: user_name.unwrap().to_string(),
-                    is_loaded: false,
                     id: generate_mod_id(),
                 });
         }

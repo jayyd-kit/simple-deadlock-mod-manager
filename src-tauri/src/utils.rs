@@ -24,10 +24,6 @@ pub fn update_config_mod_file_name(
 
     if let Some(index) = config.mods.iter().position(|x| x.file_name == mod_name.file_name) {
         config.mods[index].file_name = new_name;
-        match operation {
-            ModOperation::LoadMods => {config.mods[index].is_loaded = true;},
-            ModOperation::UnloadMods => {config.mods[index].is_loaded = false;},
-        }
     }
 }
 
@@ -67,7 +63,6 @@ pub fn process_mod_directory(
                     config.mods.push(Mod {
                         file_name: file_name.clone(),
                         user_name: file_name.clone(),
-                        is_loaded,
                         id: generate_mod_id(),
                     });
 

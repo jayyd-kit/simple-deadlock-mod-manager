@@ -31,7 +31,6 @@ pub struct Mod {
     pub file_name: String,
     pub user_name: String,
     pub id: String,
-    pub is_loaded: bool,
 }
 
 
@@ -137,7 +136,6 @@ pub fn load_config() -> Result<ModManagerConfigV2, Box<dyn std::error::Error>> {
                 result.push(Mod {
                     file_name: mod_name.0.to_string(),
                     user_name: mod_name.1.to_string(),
-                    is_loaded,
                     id: generate_mod_id(),
                 })
             });
