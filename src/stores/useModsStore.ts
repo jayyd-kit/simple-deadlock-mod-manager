@@ -1,4 +1,4 @@
-import {applyChanges, changeModName, listMods, ModName, Mods, ModOperation} from "../generated";
+import {applyChanges, changeModName, listMods, DeadlockMod, Mods, ModOperation} from "../generated";
 import {create} from "zustand";
 import {ModTabVariant} from "../components/ModTab/ModTab.tsx";
 
@@ -6,12 +6,14 @@ interface SelectedMod {
     variant: ModTabVariant,
     fileName: string,
     userName: string,
+    id: string
 }
 
 interface ChangedMod {
     operation: ModOperation,
     fileName: string,
     userName: string,
+    id: string
 }
 
 interface ModsStore {
@@ -46,15 +48,17 @@ export const useModsStore = create<ModsStore>((set, get) => ({
 
         let modsToLoad = changed.filter((x) => x.operation === "LoadMods").map((x) => ({
             file_name: x.fileName,
-            user_name: x.userName
-        })) as ModName[];
+            user_name: x.userName,
+            id: x.id
+        })) as DeadlockMod[];
         let modsToUnload = changed.filter((x) => x.operation === "UnloadMods").map((x) => ({
             file_name: x.fileName,
-            user_name: x.userName
-        })) as ModName[];
+            user_name: x.userName,
+            id: x.id
+        })) as DeadlockMod[];
         let results: {
-            loaded_mods: { file_name: string; user_name: string; }[];
-            unloaded_mods: { file_name: string; user_name: string; }[];
+            loaded_mods: { file_name: string; user_name: string; id: string }[];
+            unloaded_mods: { file_name: string; user_name: string; id: string }[];
         };
         if (modsToLoad.length > 0) {
             results = await applyChanges({mods: modsToLoad, operation: "LoadMods"})
@@ -113,7 +117,8 @@ export const useModsStore = create<ModsStore>((set, get) => ({
                     changed.push({
                         operation,
                         fileName: mod.fileName,
-                        userName: mod.userName
+                        userName: mod.userName,
+                        id: mod.id,
                     });
                 } else {
                     const existing = changed[existingIndex];

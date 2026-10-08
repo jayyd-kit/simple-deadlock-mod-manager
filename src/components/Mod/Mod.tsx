@@ -7,7 +7,7 @@ import {useErrorStore} from "../../stores/useErrorStore.ts";
 import {Settings} from "@mui/icons-material";
 import {useModManageStore} from "../../stores/useModManageStore.ts";
 
-function Mod({modName, fileName, variant}: { modName: string, fileName: string, variant: ModTabVariant }) {
+function Mod({modName, fileName, variant, id}: { modName: string, fileName: string, variant: ModTabVariant, id: string }) {
     const {setVisible, setError} = useErrorStore();
     const colors = ["bg-gunItem", "bg-vitalityItem", "bg-spiritItem"];
     const {changeModName, addSelectedMod, removeSelectedMod, selectedMods, changedMods} = useModsStore();
@@ -48,11 +48,11 @@ function Mod({modName, fileName, variant}: { modName: string, fileName: string, 
         checkbox.checked = !checkbox.checked;
         switch (selected) { // value before clicking
             case true:
-                removeSelectedMod({variant, fileName, userName: modName})
+                removeSelectedMod({variant, fileName, userName: modName, id})
                 setSelected(false)
                 break;
             case false:
-                addSelectedMod({variant, fileName, userName: modName})
+                addSelectedMod({variant, fileName, userName: modName, id})
                 setSelected(true)
                 break;
         }

@@ -1,5 +1,5 @@
 import Mod from "../Mod/Mod.tsx";
-import {ModName} from "../../generated";
+import {DeadlockMod} from "../../generated";
 import {SearchType, useSearchStore} from "../../stores/useSearchStore.ts";
 import {useEffect, useState} from "react";
 import Fuse from "fuse.js"
@@ -9,9 +9,9 @@ export enum ModTabVariant {
     UnloadedMods
 }
 
-function ModTab({variant, mods, loading}: { variant: ModTabVariant, mods: ModName[], loading: boolean }) {
+function ModTab({variant, mods, loading}: { variant: ModTabVariant, mods: DeadlockMod[], loading: boolean }) {
     const {search, searchType} = useSearchStore();
-    const [filteredMods, setFilteredMods] = useState<ModName[]>([]);
+    const [filteredMods, setFilteredMods] = useState<DeadlockMod[]>([]);
 
 
     useEffect(() => {
@@ -68,7 +68,7 @@ function ModTab({variant, mods, loading}: { variant: ModTabVariant, mods: ModNam
                     {loading ? (
                         <></>
                     ) : filteredMods.map((mod) => (
-                        <Mod modName={mod.user_name} key={mod.file_name} fileName={mod.file_name} variant={variant}/>
+                        <Mod id={mod.id} modName={mod.user_name} key={mod.id} fileName={mod.file_name} variant={variant}/>
                     ))}
                 </div>
             </div>
