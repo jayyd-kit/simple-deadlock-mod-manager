@@ -1,22 +1,31 @@
-use crate::config::ModManagerConfigV1;
-use crate::types::{ModName, Mods};
+use crate::config::{Mod, ModManagerConfigV1, ModManagerConfigV2};
+use crate::types::{ModName, ModOperation, Mods};
 use regex::Regex;
 use std::path::{Path, PathBuf};
 use std::sync::MutexGuard;
 
 
 pub fn update_config_mod_name(
-    config: &mut MutexGuard<ModManagerConfigV1>,
+    config: &mut MutexGuard<ModManagerConfigV2>,
     mod_name: &ModName,
     new_name: String,
+    operation: ModOperation
 ) {
-    if config.mod_names.remove(&mod_name.file_name).is_some() {
+    /*if config.mod_names.remove(&mod_name.file_name).is_some() {
         if mod_name.file_name == mod_name.user_name {
             config.mod_names.insert(new_name.clone(), new_name);
         } else {
             config
                 .mod_names
                 .insert(new_name, mod_name.user_name.clone());
+        }
+    }*/
+
+    if let Some(index) = config.mods.iter().position(|x| x.file_name == mod_name.file_name) {
+        config.mods[index].file_name = new_name;
+        match operation {
+            ModOperation::LoadMods => {config.mods[index].is_loaded = true;},
+            ModOperation::UnloadMods => {config.mods[index].is_loaded = false;},
         }
     }
 }
@@ -39,7 +48,7 @@ pub fn is_deadlock_path_valid(deadlock_path: &String) -> bool {
 /// Mods that match the VALID_MOD_REGEX (see commands.rs) get put in the loaded_mods array
 pub fn process_mod_directory(
     mod_path: &Path,
-    config: &mut ModManagerConfigV1,
+    config: &mut ModManagerConfigV2,
 ) -> Result<Mods, String> {
     let mut result = Mods::default();
 
@@ -50,13 +59,15 @@ pub fn process_mod_directory(
                 let file_name = entry.file_name().to_string_lossy().into_owned();
 
                 // If the user has specified a name then load that
-                let user_name = if let Some(existing_user_name) = config.mod_names.get(&file_name) {
-                    existing_user_name.clone()
+                let user_name = if let Some(existing_mod) = config.mods.iter().find(|m| m.file_name == file_name) {
+                    existing_mod.user_name.clone()
                 } else {
-                    // otherwise set the user name the same as the file name
-                    config
-                        .mod_names
-                        .insert(file_name.clone(), file_name.clone());
+                    config.mods.push(Mod {
+                        file_name: file_name.clone(),
+                        user_name: file_name.clone(),
+                        ..Default::default()
+                    });
+
                     file_name.clone()
                 };
 
@@ -65,7 +76,7 @@ pub fn process_mod_directory(
                     file_name: file_name.clone(),
                 };
 
-                if check_mod_loaded(&file_name) {
+                if is_mod_loaded(&file_name) {
                     result.loaded_mods.push(mod_name);
                 } else if entry.path().extension().map_or(false, |ext| ext == "vpk") {
                     result.unloaded_mods.push(mod_name);
@@ -95,7 +106,7 @@ pub fn list_vpk_files(path: PathBuf, result: &mut Vec<String>) -> Result<(), Str
 
 pub(crate) const VALID_MOD_REGEX: &str = r"^pak\d\d_dir\.vpk";
 
-pub fn check_mod_loaded(mod_name: &str) -> bool {
+pub fn is_mod_loaded(mod_file_name: &str) -> bool {
     let regex = Regex::new(VALID_MOD_REGEX).unwrap();
-    regex.is_match(mod_name)
+    regex.is_match(mod_file_name)
 }

@@ -19,7 +19,7 @@ impl PartialEq for ModName {
 }
 
 #[derive(Deserialize, Serialize)]
-pub enum Operation {
+pub enum ModOperation {
     LoadMods,
     UnloadMods,
 }

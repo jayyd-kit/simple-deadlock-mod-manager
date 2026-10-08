@@ -1,10 +1,8 @@
-use crate::config::{save_config, ConfigState, ModManagerConfigV1};
+use crate::config::{save_config, ConfigState, Mod, ModManagerConfigV2};
 use crate::gamebanana_api::api::{download_mod, get_mod_files};
 use crate::gamebanana_api::types::FileEntry;
-use crate::types::{CompressedFileType, ModName, Mods, Operation};
-use crate::utils::{
-    is_deadlock_path_valid, list_vpk_files, process_mod_directory, update_config_mod_name,
-};
+use crate::types::{CompressedFileType, ModName, Mods, ModOperation};
+use crate::utils::{is_deadlock_path_valid, is_mod_loaded, list_vpk_files, process_mod_directory, update_config_mod_name};
 use rand::RngExt;
 use regex::bytes::Regex;
 use serde::Serialize;
@@ -83,7 +81,7 @@ pub fn get_auto_detect_deadlock_path() -> Result<String, String> {
 }
 
 #[tauri::command]
-pub fn get_config(state: State<ConfigState>) -> Result<ModManagerConfigV1, String> {
+pub fn get_config(state: State<ConfigState>) -> Result<ModManagerConfigV2, String> {
     Ok(state.config.lock().map_err(|e| e.to_string())?.clone())
 }
 
@@ -118,7 +116,7 @@ pub fn list_mods(state: State<ConfigState>) -> Result<Mods, String> {
 
         let mods = process_mod_directory(&mod_path, &mut config)?;
         // this removes mods which have been deleted from the config
-        for file_name in config.mod_names.clone().keys().clone() {
+        /*for file_name in config.mod_names.clone().keys().clone() {
             let mut present = false;
             if mods.unloaded_mods.contains(&ModName {
                 file_name: file_name.clone(),
@@ -134,6 +132,26 @@ pub fn list_mods(state: State<ConfigState>) -> Result<Mods, String> {
             }
             if !present {
                 config.mod_names.remove(file_name);
+            }
+        }*/
+        for config_mod in config.mods.clone() {
+            let mut present = false;
+            if mods.unloaded_mods.contains(&ModName {
+                file_name: config_mod.file_name.clone(),
+                user_name: "".to_string(),
+            }) {
+                present = true
+            }
+            if mods.loaded_mods.contains(&ModName {
+                file_name: config_mod.file_name.clone(),
+                user_name: "".to_string(),
+            }) {
+                present = true
+            }
+            if !present {
+                if let Some(index) = config.mods.iter().position(|x| x.file_name == config_mod.file_name) {
+                    config.mods.remove(index);
+                }
             }
         }
         result = mods;
@@ -219,17 +237,20 @@ pub fn change_mod_name(
 ) -> Result<String, String> {
     {
         let mut config = state.config.lock().map_err(|e| e.to_string())?;
-        if !config.mod_names.contains_key(&file_name) {
+        if !config.mods.iter().any(|x| {x.file_name == file_name}) {
             return Err("File name is not valid".to_string());
         }
         if user_name == "" {
             user_name = file_name.clone();
         }
+        /*
         let mod_name = config
             .mod_names
             .entry(file_name.clone())
             .or_insert(file_name);
-        *mod_name = user_name.clone();
+        *mod_name = user_name.clone();*/
+        let mod_index = config.mods.iter().position(|x| x.file_name == file_name).unwrap();
+        config.mods[mod_index].user_name = user_name.clone();
     }
     save_config(&state).map_err(|e| e.to_string())?;
     Ok(user_name)
@@ -249,7 +270,7 @@ pub fn change_mod_name(
 #[tauri::command]
 pub fn apply_changes(
     mods: Vec<ModName>,
-    operation: Operation,
+    operation: ModOperation,
     state: State<ConfigState>,
 ) -> Result<Mods, String> {
     let discovered_mods: Mods;
@@ -278,7 +299,7 @@ pub fn apply_changes(
             }
         }
         match operation {
-            Operation::LoadMods => {
+            ModOperation::LoadMods => {
                 //rename file to pak**_dir.vpk
                 //check first available number (todo mod load order)
                 for mod_to_load in mods {
@@ -292,7 +313,7 @@ pub fn apply_changes(
                                 if !new_path.exists() {
                                     std::fs::rename(entry.path(), new_path)
                                         .map_err(|e| e.to_string())?;
-                                    update_config_mod_name(&mut config, &mod_to_load, new_name);
+                                    update_config_mod_name(&mut config, &mod_to_load, new_name, ModOperation::LoadMods);
                                     break;
                                 }
                                 if pak_number > 99 {
@@ -313,7 +334,7 @@ pub fn apply_changes(
                     }
                 }
             }
-            Operation::UnloadMods => {
+            ModOperation::UnloadMods => {
                 //add random 4 numbers to start
                 let mut rng = rand::rng();
                 for mod_to_unload in mods {
@@ -339,7 +360,7 @@ pub fn apply_changes(
                                 )
                             );
                             std::fs::rename(entry.path(), new_path).map_err(|e| e.to_string())?;
-                            update_config_mod_name(&mut config, &mod_to_unload, new_name);
+                            update_config_mod_name(&mut config, &mod_to_unload, new_name, ModOperation::UnloadMods);
                         }
                     }
                 }
@@ -380,8 +401,7 @@ pub fn copy_mod_to_game(
             .join("addons");
         std::fs::create_dir_all(&addons_path).map_err(|e| e.to_string())?;
         let mut fname = fpath.file_name().unwrap().to_string_lossy().into_owned();
-        let regex = Regex::new(VALID_MOD_REGEX).unwrap();
-        if regex.is_match(fname.as_ref()) {
+        if is_mod_loaded(fname.as_ref()) {
             let mut rng = rand::rng();
             let random_prefix = rng.random_range(0..9999);
             fname = format!("{}_{}", random_prefix, fname)
@@ -398,8 +418,13 @@ pub fn copy_mod_to_game(
         log::info!("Copying mod {} to {}", &path, mod_path.display());
         if user_name.is_some() {
             config
-                .mod_names
-                .insert(fname.clone(), user_name.unwrap().to_string());
+                .mods
+                .push(Mod {
+                    file_name: fname.clone(),
+                    user_name: user_name.unwrap().to_string(),
+                    is_loaded: false,
+                    id: "".to_string(),
+                });
         }
     }
     save_config(&state).map_err(|e| e.to_string())?;

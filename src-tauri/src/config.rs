@@ -1,4 +1,4 @@
-use crate::utils::check_mod_loaded;
+use crate::utils::is_mod_loaded;
 use directories::ProjectDirs;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -22,17 +22,24 @@ pub struct ModManagerConfigV2 {
     #[serde(default = "v2_version_default")]
     pub version: String,
     pub deadlock_path: String,
-    pub mods: Vec<Mods>,
-    /// Keys are the preset name, values are the mods
-    pub presets: HashMap<String, Mods>,
+    pub mods: Vec<Mod>,
+    pub presets: Vec<Preset>,
 }
 
 #[derive(Clone, Default, Deserialize, Serialize)]
-pub struct Mods {
+pub struct Mod {
     pub file_name: String,
     pub user_name: String,
     pub id: String,
     pub is_loaded: bool,
+}
+
+
+
+#[derive(Clone, Default, Deserialize, Serialize)]
+pub struct Preset {
+    pub preset_name: String,
+    pub mods: Vec<Mod>,
 }
 
 fn v1_version_default() -> String {
@@ -122,11 +129,11 @@ pub fn load_config() -> Result<ModManagerConfigV2, Box<dyn std::error::Error>> {
     match serde_json::from_str::<ModManagerConfigV1>(&contents) {
         Ok(config_V1) => {
             //upgrade to v2
-            let mut result: Vec<Mods> = Vec::default();
+            let mut result: Vec<Mod> = Vec::default();
             log::warn!("Updating config to V2");
             config_V1.mod_names.iter().for_each(|mod_name| {
-                let is_loaded = check_mod_loaded(mod_name.clone().0);
-                result.push(Mods {
+                let is_loaded = is_mod_loaded(mod_name.clone().0);
+                result.push(Mod {
                     file_name: mod_name.0.to_string(),
                     user_name: mod_name.1.to_string(),
                     is_loaded,
@@ -135,7 +142,7 @@ pub fn load_config() -> Result<ModManagerConfigV2, Box<dyn std::error::Error>> {
             });
             let config = ModManagerConfigV2 {
                 mods: result,
-                presets: HashMap::default(),
+                presets: Vec::default(),
                 version: "2".to_string(),
                 deadlock_path: "".to_string(),
             };
