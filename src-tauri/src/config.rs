@@ -4,6 +4,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::path::PathBuf;
 use std::sync::Mutex;
+use crate::types::{Mod, Preset};
 /*
 todo: could link each mod to a gamebanana link to check for updates
 another hashmap with <file name, gamebanana link>
@@ -26,20 +27,7 @@ pub struct ModManagerConfigV2 {
     pub presets: Vec<Preset>,
 }
 
-#[derive(Clone, Default, Deserialize, Serialize)]
-pub struct Mod {
-    pub file_name: String,
-    pub user_name: String,
-    pub id: String,
-}
 
-
-
-#[derive(Clone, Default, Deserialize, Serialize)]
-pub struct Preset {
-    pub preset_name: String,
-    pub mods: Vec<Mod>,
-}
 
 fn v1_version_default() -> String {
     "1".to_string()

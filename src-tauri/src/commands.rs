@@ -1,7 +1,7 @@
-use crate::config::{save_config, ConfigState, Mod, ModManagerConfigV2};
+use crate::config::{save_config, ConfigState, ModManagerConfigV2};
 use crate::gamebanana_api::api::{download_mod, get_mod_files};
 use crate::gamebanana_api::types::FileEntry;
-use crate::types::{CompressedFileType, ModName, Mods, ModOperation};
+use crate::types::{CompressedFileType, Mods, ModOperation, Mod};
 use crate::utils::{generate_mod_id, is_deadlock_path_valid, is_mod_loaded, list_vpk_files, process_mod_directory, update_config_mod_file_name};
 use rand::RngExt;
 use serde::Serialize;
@@ -135,15 +135,17 @@ pub fn list_mods(state: State<ConfigState>) -> Result<Mods, String> {
         }*/
         for config_mod in config.mods.clone() {
             let mut present = false;
-            if mods.unloaded_mods.contains(&ModName {
+            if mods.unloaded_mods.contains(&Mod {
                 file_name: config_mod.file_name.clone(),
-                user_name: "".to_string(),
+                user_name: config_mod.user_name.clone(),
+                id: config_mod.id.clone(),
             }) {
                 present = true
             }
-            if mods.loaded_mods.contains(&ModName {
+            if mods.loaded_mods.contains(&Mod {
                 file_name: config_mod.file_name.clone(),
-                user_name: "".to_string(),
+                user_name: config_mod.user_name.clone(),
+                id: config_mod.id,
             }) {
                 present = true
             }
@@ -268,7 +270,7 @@ pub fn change_mod_name(
 /// Finally it should save the config with the modified file names
 #[tauri::command]
 pub fn apply_changes(
-    mods: Vec<ModName>,
+    mods: Vec<Mod>,
     operation: ModOperation,
     state: State<ConfigState>,
 ) -> Result<Mods, String> {
@@ -379,7 +381,7 @@ pub fn copy_mod_to_game(
     path: String,
     user_name: Option<String>,
     state: State<ConfigState>,
-) -> Result<ModName, String> {
+) -> Result<(), String> {
     {
         let mut config = state.config.lock().map_err(|e| e.to_string())?;
         if !is_deadlock_path_valid(&config.deadlock_path) {
@@ -426,10 +428,7 @@ pub fn copy_mod_to_game(
         }
     }
     save_config(&state).map_err(|e| e.to_string())?;
-    Ok(ModName {
-        user_name: "".to_string(),
-        file_name: "".to_string(),
-    })
+    Ok(())
 }
 
 #[tauri::command]

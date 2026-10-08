@@ -1,5 +1,5 @@
-use crate::config::{Mod, ModManagerConfigV1, ModManagerConfigV2};
-use crate::types::{ModName, ModOperation, Mods};
+use crate::config::{ModManagerConfigV2};
+use crate::types::{Mod, ModOperation, Mods};
 use regex::Regex;
 use std::path::{Path, PathBuf};
 use std::sync::MutexGuard;
@@ -8,7 +8,7 @@ use uuid::Uuid;
 /// Updates the file name in the config when it is changed (load/unload)
 pub fn update_config_mod_file_name(
     config: &mut MutexGuard<ModManagerConfigV2>,
-    mod_name: &ModName,
+    mod_name: &Mod,
     new_name: String,
     operation: ModOperation
 ) {
@@ -56,22 +56,24 @@ pub fn process_mod_directory(
                 let file_name = entry.file_name().to_string_lossy().into_owned();
 
                 // If the user has specified a name then load that
-                let user_name = if let Some(existing_mod) = config.mods.iter().find(|m| m.file_name == file_name) {
-                    existing_mod.user_name.clone()
+                // If we already have the mod in the config load the id
+                let existing_data = if let Some(existing_mod) = config.mods.iter().find(|m| m.file_name == file_name) {
+                    (existing_mod.user_name.clone(), existing_mod.id.clone())
                 } else { //otherwise default the username to the filename
-                    let is_loaded = is_mod_loaded(&*file_name);
+                    let id = generate_mod_id();
                     config.mods.push(Mod {
                         file_name: file_name.clone(),
                         user_name: file_name.clone(),
-                        id: generate_mod_id(),
+                        id: id.clone(),
                     });
 
-                    file_name.clone()
+                    (file_name.clone(), id)
                 };
 
-                let mod_name = ModName {
-                    user_name,
+                let mod_name = Mod {
+                    user_name: existing_data.0,
                     file_name: file_name.clone(),
+                    id: existing_data.1,
                 };
 
                 if is_mod_loaded(&file_name) {
