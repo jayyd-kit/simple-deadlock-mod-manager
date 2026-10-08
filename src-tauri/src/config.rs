@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::path::PathBuf;
 use std::sync::Mutex;
-use crate::types::{Mod, Preset};
+use crate::types::{DeadlockMod, Preset};
 /*
 todo: could link each mod to a gamebanana link to check for updates
 another hashmap with <file name, gamebanana link>
@@ -23,7 +23,7 @@ pub struct ModManagerConfigV2 {
     #[serde(default = "v2_version_default")]
     pub version: String,
     pub deadlock_path: String,
-    pub mods: Vec<Mod>,
+    pub mods: Vec<DeadlockMod>,
     pub presets: Vec<Preset>,
 }
 
@@ -117,11 +117,11 @@ pub fn load_config() -> Result<ModManagerConfigV2, Box<dyn std::error::Error>> {
     match serde_json::from_str::<ModManagerConfigV1>(&contents) {
         Ok(config_V1) => {
             //upgrade to V2
-            let mut result: Vec<Mod> = Vec::default();
+            let mut result: Vec<DeadlockMod> = Vec::default();
             log::warn!("Updating config to V2");
             config_V1.mod_names.iter().for_each(|mod_name| { //convert to hashmap to array of Mod
                 let is_loaded = is_mod_loaded(mod_name.clone().0);
-                result.push(Mod {
+                result.push(DeadlockMod {
                     file_name: mod_name.0.to_string(),
                     user_name: mod_name.1.to_string(),
                     id: generate_mod_id(),

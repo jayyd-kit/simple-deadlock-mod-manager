@@ -1,7 +1,7 @@
 use crate::config::{save_config, ConfigState, ModManagerConfigV2};
 use crate::gamebanana_api::api::{download_mod, get_mod_files};
 use crate::gamebanana_api::types::FileEntry;
-use crate::types::{CompressedFileType, Mods, ModOperation, Mod};
+use crate::types::{CompressedFileType, Mods, ModOperation, DeadlockMod};
 use crate::utils::{generate_mod_id, is_deadlock_path_valid, is_mod_loaded, list_vpk_files, process_mod_directory, update_config_mod_file_name};
 use rand::RngExt;
 use serde::Serialize;
@@ -135,14 +135,14 @@ pub fn list_mods(state: State<ConfigState>) -> Result<Mods, String> {
         }*/
         for config_mod in config.mods.clone() {
             let mut present = false;
-            if mods.unloaded_mods.contains(&Mod {
+            if mods.unloaded_mods.contains(&DeadlockMod {
                 file_name: config_mod.file_name.clone(),
                 user_name: config_mod.user_name.clone(),
                 id: config_mod.id.clone(),
             }) {
                 present = true
             }
-            if mods.loaded_mods.contains(&Mod {
+            if mods.loaded_mods.contains(&DeadlockMod {
                 file_name: config_mod.file_name.clone(),
                 user_name: config_mod.user_name.clone(),
                 id: config_mod.id,
@@ -270,7 +270,7 @@ pub fn change_mod_name(
 /// Finally it should save the config with the modified file names
 #[tauri::command]
 pub fn apply_changes(
-    mods: Vec<Mod>,
+    mods: Vec<DeadlockMod>,
     operation: ModOperation,
     state: State<ConfigState>,
 ) -> Result<Mods, String> {
@@ -420,7 +420,7 @@ pub fn copy_mod_to_game(
         if user_name.is_some() {
             config
                 .mods
-                .push(Mod {
+                .push(DeadlockMod {
                     file_name: fname.clone(),
                     user_name: user_name.unwrap().to_string(),
                     id: generate_mod_id(),

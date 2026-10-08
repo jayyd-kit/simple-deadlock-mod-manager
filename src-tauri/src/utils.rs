@@ -1,5 +1,5 @@
 use crate::config::{ModManagerConfigV2};
-use crate::types::{Mod, ModOperation, Mods};
+use crate::types::{DeadlockMod, ModOperation, Mods};
 use regex::Regex;
 use std::path::{Path, PathBuf};
 use std::sync::MutexGuard;
@@ -8,7 +8,7 @@ use uuid::Uuid;
 /// Updates the file name in the config when it is changed (load/unload)
 pub fn update_config_mod_file_name(
     config: &mut MutexGuard<ModManagerConfigV2>,
-    mod_name: &Mod,
+    mod_name: &DeadlockMod,
     new_name: String,
     operation: ModOperation
 ) {
@@ -61,7 +61,7 @@ pub fn process_mod_directory(
                     (existing_mod.user_name.clone(), existing_mod.id.clone())
                 } else { //otherwise default the username to the filename
                     let id = generate_mod_id();
-                    config.mods.push(Mod {
+                    config.mods.push(DeadlockMod {
                         file_name: file_name.clone(),
                         user_name: file_name.clone(),
                         id: id.clone(),
@@ -70,7 +70,7 @@ pub fn process_mod_directory(
                     (file_name.clone(), id)
                 };
 
-                let mod_name = Mod {
+                let mod_name = DeadlockMod {
                     user_name: existing_data.0,
                     file_name: file_name.clone(),
                     id: existing_data.1,

@@ -2,8 +2,8 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Default, Deserialize, Serialize, Clone)]
 pub struct Mods {
-    pub loaded_mods: Vec<Mod>,
-    pub unloaded_mods: Vec<Mod>,
+    pub loaded_mods: Vec<DeadlockMod>,
+    pub unloaded_mods: Vec<DeadlockMod>,
 }
 
 /*#[derive(Default, Deserialize, Serialize, Clone)]
@@ -15,14 +15,14 @@ pub struct ModName {
 
 
 #[derive(Clone, Default, Deserialize, Serialize)]
-pub struct Mod {
+pub struct DeadlockMod {
     pub file_name: String,
     pub user_name: String,
     pub id: String,
 }
 
-impl PartialEq for Mod {
-    fn eq(&self, other: &Mod) -> bool {
+impl PartialEq for DeadlockMod {
+    fn eq(&self, other: &DeadlockMod) -> bool {
         self.file_name.eq(&other.file_name)
     }
 }
@@ -30,7 +30,7 @@ impl PartialEq for Mod {
 #[derive(Clone, Default, Deserialize, Serialize)]
 pub struct Preset {
     pub preset_name: String,
-    pub mods: Vec<Mod>,
+    pub mods: Vec<DeadlockMod>,
 }
 
 #[derive(Deserialize, Serialize)]
