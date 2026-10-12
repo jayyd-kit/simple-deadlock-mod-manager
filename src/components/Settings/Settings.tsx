@@ -35,6 +35,7 @@ function Settings({isOpen, onClose}: { isOpen: boolean, onClose: () => void }) {
             } else {
                 setPath(config.deadlock_path);
             }
+            setFileNameAlwaysVisible(config.settings.always_show_file_names)
             setValidConfig(await checkGameinfoValidity())
         } catch (e) {
             setVisible(true);
@@ -48,6 +49,9 @@ function Settings({isOpen, onClose}: { isOpen: boolean, onClose: () => void }) {
         try {
             await changePath({path: path});
             setMods(await getModsFromRust());
+            let config = await getConfig();
+            config.settings.always_show_file_names = fileNameAlwaysVisible;
+            await setConfig({newConfig: config});
             onClose();
         } catch (e) {
             setVisible(true);
@@ -102,22 +106,22 @@ function Settings({isOpen, onClose}: { isOpen: boolean, onClose: () => void }) {
                                         </label>
                                         <div className="flex gap-4">
                                             <div className="bg-gray-800 grow mr-9"><input id="pathInput" value={path}
-                                                                                           onChange={(e) => {
-                                                                                               setPath(e.target.value)
-                                                                                           }}
-                                                                                           onKeyDown={async (e) => {
-                                                                                               if (e.key === "Enter") {
-                                                                                                   try {
-                                                                                                       await changePath({path: path});
-                                                                                                       setMods(await getModsFromRust());
-                                                                                                       setValidConfig(await checkGameinfoValidity());
-                                                                                                   } catch (e) {
-                                                                                                       setVisible(true);
-                                                                                                       setError(e as string);
-                                                                                                   }
-                                                                                               }
-                                                                                           }}
-                                                                                           className="text-lg m-1 w-full mr-1"/>
+                                                                                          onChange={(e) => {
+                                                                                              setPath(e.target.value)
+                                                                                          }}
+                                                                                          onKeyDown={async (e) => {
+                                                                                              if (e.key === "Enter") {
+                                                                                                  try {
+                                                                                                      await changePath({path: path});
+                                                                                                      setMods(await getModsFromRust());
+                                                                                                      setValidConfig(await checkGameinfoValidity());
+                                                                                                  } catch (e) {
+                                                                                                      setVisible(true);
+                                                                                                      setError(e as string);
+                                                                                                  }
+                                                                                              }
+                                                                                          }}
+                                                                                          className="text-lg m-1 w-full mr-1"/>
                                             </div>
                                             <Button onClick={onBrowseClick}>
                                                 Browse
@@ -154,16 +158,12 @@ function Settings({isOpen, onClose}: { isOpen: boolean, onClose: () => void }) {
                                     <div className="mt-8 text-xl flex gap-2 justify-between">
                                         <div className="text-xl">Always display File name</div>
                                         <input
-                                            onChange={async (e:ChangeEvent<HTMLInputElement>) => {
-                                                try {
-                                                    setFileNameAlwaysVisible(e.target.checked);
-                                                    let config = await getConfig();
-                                                } catch (e) {
-                                                    setVisible(true);
-                                                    setError(e as string);
-                                                }
+                                            checked={fileNameAlwaysVisible}
+                                            onChange={(e: ChangeEvent<HTMLInputElement>) => {
+                                                setFileNameAlwaysVisible(e.target.checked);
                                             }}
-                                            className={"w-6 h-6 border border-default-medium rounded-xs bg-neutral-secondary-medium focus:ring-2 focus:ring-brand-soft"} type={"checkbox"}/>
+                                            className={"w-6 h-6 border border-default-medium rounded-xs bg-neutral-secondary-medium focus:ring-2 focus:ring-brand-soft"}
+                                            type={"checkbox"}/>
                                     </div>
                                 </>
                             )}
