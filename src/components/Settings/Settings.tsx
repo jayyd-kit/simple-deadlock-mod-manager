@@ -1,28 +1,30 @@
 import {Modal} from "@mui/material";
 import Button from "../Button/Button.tsx";
-import {useEffect, useState} from "react";
+import {ChangeEvent, useEffect, useState} from "react";
 import {
     changePath,
     checkGameinfoValidity,
     getAutoDetectDeadlockPath,
     getConfig,
-    makeConfigValid
+    makeConfigValid, setConfig
 } from "../../generated";
 import {useModsStore} from "../../stores/useModsStore.ts";
 import {useErrorStore} from "../../stores/useErrorStore.ts";
 import {open} from "@tauri-apps/plugin-dialog";
+import {useSettingsStore} from "../../stores/useSettingsStore.ts";
 
-function Options({isOpen, onClose}: { isOpen: boolean, onClose: () => void }) {
+function Settings({isOpen, onClose}: { isOpen: boolean, onClose: () => void }) {
     const {setVisible, setError} = useErrorStore();
     const {setMods, getModsFromRust} = useModsStore();
+    const {setFileNameAlwaysVisible, fileNameAlwaysVisible} = useSettingsStore();
     const [path, setPath] = useState("");
     const [validConfig, setValidConfig] = useState<boolean>(false);
     const [loading, setLoading] = useState<boolean>(true);
     useEffect(() => {
-        getOptionsConfig();
+        getSettingsConfig();
     }, [])
 
-    const getOptionsConfig = async () => {
+    const getSettingsConfig = async () => {
         try {
             const config = await getConfig();
             if (config.deadlock_path === "") {
@@ -90,7 +92,7 @@ function Options({isOpen, onClose}: { isOpen: boolean, onClose: () => void }) {
                     <div className="flex flex-col justify-between h-full">
                         <div>
                             <div className="text-white mt-8 text-3xl font-extrabold">
-                                Options
+                                Settings
                             </div>
                             {!loading && (
                                 <>
@@ -149,6 +151,20 @@ function Options({isOpen, onClose}: { isOpen: boolean, onClose: () => void }) {
                                             }}>Make valid</Button>
                                         </div>
                                     </div>
+                                    <div className="mt-8 text-xl flex gap-2 justify-between">
+                                        <div className="text-xl">Always display File name</div>
+                                        <input
+                                            onChange={async (e:ChangeEvent<HTMLInputElement>) => {
+                                                try {
+                                                    setFileNameAlwaysVisible(e.target.checked);
+                                                    let config = await getConfig();
+                                                } catch (e) {
+                                                    setVisible(true);
+                                                    setError(e as string);
+                                                }
+                                            }}
+                                            className={"w-6 h-6 border border-default-medium rounded-xs bg-neutral-secondary-medium focus:ring-2 focus:ring-brand-soft"} type={"checkbox"}/>
+                                    </div>
                                 </>
                             )}
                         </div>
@@ -165,4 +181,4 @@ function Options({isOpen, onClose}: { isOpen: boolean, onClose: () => void }) {
     )
 }
 
-export default Options;
+export default Settings;

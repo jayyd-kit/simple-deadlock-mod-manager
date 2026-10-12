@@ -1,5 +1,5 @@
 import Button from "../Button/Button.tsx";
-import Options from "../Options/Options.tsx";
+import Settings from "../Settings/Settings.tsx";
 import {useState} from "react";
 import {useModsStore} from "../../stores/useModsStore.ts";
 import {useErrorStore} from "../../stores/useErrorStore.ts";
@@ -28,8 +28,8 @@ function TopBar() {
                 <Button onClick={onModAddClick}>Add Mod</Button>
                 <AddModModal modalOpen={addModModalOpen} setModalOpen={setAddModModalOpen}/>
                 <Search/>
-                <Button onClick={handleOpenModal}>Options</Button>
-                <Options isOpen={openModal} onClose={handleCloseModal}/>
+                <Button onClick={handleOpenModal}>Settings</Button>
+                <Settings isOpen={openModal} onClose={handleCloseModal}/>
                 <Button onClick={async () => {
                     try {
                         await applyModChanges();
