@@ -18,13 +18,31 @@ pub struct ModManagerConfigV1 {
     pub mod_names: HashMap<String, String>,
 }
 
-#[derive(Default, Deserialize, Serialize, Clone)]
+#[derive(Deserialize, Serialize, Clone)]
 pub struct ModManagerConfigV2 {
     #[serde(default = "v2_version_default")]
     pub version: String,
     pub deadlock_path: String,
+    pub settings: Settings,
     pub mods: Vec<DeadlockMod>,
     pub presets: Vec<Preset>,
+}
+
+impl Default for ModManagerConfigV2 {
+    fn default() -> Self {
+        ModManagerConfigV2 {
+            deadlock_path: "".to_string(),
+            mods: Vec::default(),
+            presets: Vec::default(),
+            settings: Settings {always_show_file_names: false},
+            version: "2".to_string(),
+        }
+    }
+}
+
+#[derive(Default, Deserialize, Serialize, Clone)]
+pub struct Settings {
+    always_show_file_names: bool,
 }
 
 
@@ -115,23 +133,41 @@ pub fn load_config() -> Result<ModManagerConfigV2, Box<dyn std::error::Error>> {
 
     //try to read it with the V1 spec
     match serde_json::from_str::<ModManagerConfigV1>(&contents) {
-        Ok(config_V1) => {
+        Ok(config_v1) => {
             //upgrade to V2
             let mut result: Vec<DeadlockMod> = Vec::default();
             log::warn!("Updating config to V2");
-            config_V1.mod_names.iter().for_each(|mod_name| { //convert to hashmap to array of Mod
-                let is_loaded = is_mod_loaded(mod_name.clone().0);
+            config_v1.mod_names.iter().for_each(|mod_name| { //convert to hashmap to array of Mod
                 result.push(DeadlockMod {
                     file_name: mod_name.0.to_string(),
                     user_name: mod_name.1.to_string(),
                     id: generate_mod_id(),
                 })
             });
+
+            let backup_path = config_path.clone().parent().unwrap().join("configV1.json.bak");
+            {
+                if let Some(parent) = backup_path.parent() {
+                    std::fs::create_dir_all(parent).map_err(|_| {
+                        log::error!("Could not create parent directory for config path");
+                        "Could not create parent directory for config path"
+                    })?;
+                }
+                let json = serde_json::to_string_pretty(&config_v1).map_err(|_| {
+                    log::error!("Could not serialize config");
+                    "Could not serialize config"
+                })?;
+                std::fs::write(backup_path, json).map_err(|_| {
+                    log::error!("Could not write config file");
+                    "Could not write config file"
+                })?;
+            }
             let config = ModManagerConfigV2 {
                 mods: result,
                 presets: Vec::default(),
                 version: "2".to_string(),
                 deadlock_path: "".to_string(),
+                settings: Settings { always_show_file_names: false },
             };
             save_config(&ConfigState {
                 config_path,
