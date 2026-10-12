@@ -6,6 +6,7 @@ import {ModTabVariant} from "../ModTab/ModTab.tsx";
 import {useErrorStore} from "../../stores/useErrorStore.ts";
 import {Settings} from "@mui/icons-material";
 import {useModManageStore} from "../../stores/useModManageStore.ts";
+import {useSettingsStore} from "../../stores/useSettingsStore.ts";
 
 function Mod({modName, fileName, variant, id}: { modName: string, fileName: string, variant: ModTabVariant, id: string }) {
     const {setVisible, setError} = useErrorStore();
@@ -13,6 +14,7 @@ function Mod({modName, fileName, variant, id}: { modName: string, fileName: stri
     const {changeModName, addSelectedMod, removeSelectedMod, selectedMods, changedMods} = useModsStore();
     //const {setFileName, setUserName, setModalOpen} = useDeleteStore();
     const {setUserName, setFileName, setModManageModalOpen} = useModManageStore();
+    const {fileNameAlwaysVisible} = useSettingsStore();
     const checkboxRef = useRef<HTMLInputElement>(null);
     const [selected, setSelected] = useState(false)
     const [isChanged, setIsChanged] = useState<boolean>(false);
@@ -27,6 +29,14 @@ function Mod({modName, fileName, variant, id}: { modName: string, fileName: stri
     useEffect(() => {
         setIsChanged(changedMods.some((x) => x.fileName === fileName));
     }, [changedMods]);
+
+    useEffect(() => {
+        if (fileNameAlwaysVisible) {
+            setInputValue(fileName);
+        } else {
+            setInputValue(modName);
+        }
+    }, [fileNameAlwaysVisible]);
 
     const [color] = useState(colors[Math.floor(Math.random() * colors.length)]);
 
@@ -94,6 +104,7 @@ function Mod({modName, fileName, variant, id}: { modName: string, fileName: stri
                                 await changeModName(inputValue, fileName)
                             } catch (error) {
                                 setVisible(true);
+                                setError(error as string);
                             }
                         }
                     }}
