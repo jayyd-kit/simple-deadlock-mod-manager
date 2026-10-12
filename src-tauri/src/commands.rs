@@ -85,6 +85,16 @@ pub fn get_config(state: State<ConfigState>) -> Result<ModManagerConfigV2, Strin
 }
 
 #[tauri::command]
+pub fn set_config(state: State<ConfigState>, new_config: ModManagerConfigV2) -> Result<(), String> {
+    {
+        let mut config = state.config.lock().map_err(|e| e.to_string())?;
+        *config = new_config;
+    }
+    save_config(&state).map_err(|e| e.to_string())?;
+    Ok(())
+}
+
+#[tauri::command]
 pub fn change_path(path: String, state: State<ConfigState>) -> Result<String, String> {
     {
         let mut config = state.config.lock().map_err(|e| e.to_string())?;
