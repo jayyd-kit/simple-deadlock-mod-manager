@@ -1,0 +1,1 @@
+docker buildx build --target export --output type=local,dest=./build-output .
