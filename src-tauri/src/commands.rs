@@ -651,6 +651,8 @@ pub async fn download_mod_command(
     }
 }
 
+
+//TODO add logging
 #[tauri::command]
 pub async fn get_presets_names(state: State<'_, ConfigState>) -> Result<Vec<String>, String> {
     let config = state.config.lock().map_err(|e| e.to_string())?;
@@ -674,6 +676,17 @@ pub async fn create_preset(state: State<'_, ConfigState>) -> Result<String, Stri
             id: id.clone(),
             mods: current_mods,
         });
+    }
+    save_config(&state).map_err(|e| e.to_string())?;
+    Ok(id.clone())
+}
+
+#[tauri::command]
+pub async fn change_preset_name(state: State<'_, ConfigState>, id: String, new_preset_name: String) -> Result<String, String> {
+    {
+        let mut config = state.config.lock().map_err(|e| e.to_string())?;
+        let preset = config.presets.iter_mut().find(|x| x.id == id).ok_or("Could not find preset with id".to_string())?;
+        preset.preset_name = new_preset_name;
     }
     save_config(&state).map_err(|e| e.to_string())?;
     Ok(id.clone())
