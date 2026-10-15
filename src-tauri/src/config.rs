@@ -1,4 +1,4 @@
-use crate::utils::{generate_mod_id, is_mod_loaded};
+use crate::utils::{generate_uuid, is_mod_loaded};
 use directories::ProjectDirs;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -141,7 +141,7 @@ pub fn load_config() -> Result<ModManagerConfigV2, Box<dyn std::error::Error>> {
                 result.push(DeadlockMod {
                     file_name: mod_name.0.to_string(),
                     user_name: mod_name.1.to_string(),
-                    id: generate_mod_id(),
+                    id: generate_uuid(),
                 })
             });
 

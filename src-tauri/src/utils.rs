@@ -60,7 +60,7 @@ pub fn process_mod_directory(
                 let existing_data = if let Some(existing_mod) = config.mods.iter().find(|m| m.file_name == file_name) {
                     (existing_mod.user_name.clone(), existing_mod.id.clone())
                 } else { //otherwise default the username to the filename
-                    let id = generate_mod_id();
+                    let id = generate_uuid();
                     config.mods.push(DeadlockMod {
                         file_name: file_name.clone(),
                         user_name: file_name.clone(),
@@ -111,6 +111,6 @@ pub fn is_mod_loaded(mod_file_name: &str) -> bool {
     regex.is_match(mod_file_name)
 }
 
-pub fn generate_mod_id() -> String {
+pub fn generate_uuid() -> String {
     Uuid::new_v4().to_string()
 }
