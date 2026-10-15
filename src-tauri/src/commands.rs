@@ -1,7 +1,7 @@
 use crate::config::{save_config, ConfigState, ModManagerConfigV2};
 use crate::gamebanana_api::api::{download_mod, get_mod_files};
 use crate::gamebanana_api::types::FileEntry;
-use crate::types::{CompressedFileType, Mods, ModOperation, DeadlockMod};
+use crate::types::{CompressedFileType, Mods, ModOperation, DeadlockMod, Preset};
 use crate::utils::{generate_uuid, is_deadlock_path_valid, is_mod_loaded, list_vpk_files, process_mod_directory, update_config_mod_file_name};
 use rand::RngExt;
 use serde::Serialize;
@@ -657,3 +657,24 @@ pub async fn get_presets(state: State<'_, ConfigState>) -> Result<Vec<String>, S
     Ok(config.presets.iter().map(|x| x.preset_name.clone()).collect())
 }
 
+#[tauri::command]
+pub async fn create_preset(state: State<'_, ConfigState>) -> Result<String, String> {
+    let id = generate_uuid();
+    {
+        let mut config = state.config.lock().map_err(|e| e.to_string())?;
+        let mod_path = PathBuf::from(config.deadlock_path.clone())
+            .join("game")
+            .join("citadel")
+            .join("addons");
+        std::fs::create_dir_all(&mod_path).map_err(|e| e.to_string())?;
+
+        let current_mods = process_mod_directory(&mod_path, &mut config)?;
+        config.presets.push(Preset {
+            preset_name: "New preset".to_string(),
+            id: id.clone(),
+            mods: current_mods,
+        });
+    }
+    save_config(&state).map_err(|e| e.to_string())?;
+    Ok(id.clone())
+}

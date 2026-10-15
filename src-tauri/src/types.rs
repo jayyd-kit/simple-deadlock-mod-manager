@@ -31,7 +31,7 @@ impl PartialEq for DeadlockMod {
 pub struct Preset {
     pub preset_name: String,
     pub id: String,
-    pub mods: Vec<DeadlockMod>,
+    pub mods: Mods,
 }
 
 #[derive(Deserialize, Serialize)]
