@@ -652,7 +652,7 @@ pub async fn download_mod_command(
 }
 
 #[tauri::command]
-pub async fn get_presets(state: State<'_, ConfigState>) -> Result<Vec<String>, String> {
+pub async fn get_presets_names(state: State<'_, ConfigState>) -> Result<Vec<String>, String> {
     let config = state.config.lock().map_err(|e| e.to_string())?;
     Ok(config.presets.iter().map(|x| x.preset_name.clone()).collect())
 }
