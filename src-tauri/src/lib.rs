@@ -105,6 +105,7 @@ pub fn run() {
             commands::process_compressed_file,
             commands::download_mod_command,
             commands::set_config,
+            commands::get_presets
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
