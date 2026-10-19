@@ -677,6 +677,7 @@ pub async fn create_preset(state: State<'_, ConfigState>) -> Result<String, Stri
             mods: current_mods,
         });
     }
+    log::info!("Created preset with id: {}", id);
     save_config(&state).map_err(|e| e.to_string())?;
     Ok(id.clone())
 }
@@ -686,6 +687,7 @@ pub async fn change_preset_name(state: State<'_, ConfigState>, id: String, new_p
     {
         let mut config = state.config.lock().map_err(|e| e.to_string())?;
         let preset = config.presets.iter_mut().find(|x| x.id == id).ok_or("Could not find preset with id".to_string())?;
+        log::info!("Changed preset with id: {0}, from \"{1}\" to \"{2}\" ", id, preset.preset_name, new_preset_name);
         preset.preset_name = new_preset_name;
     }
     save_config(&state).map_err(|e| e.to_string())?;
