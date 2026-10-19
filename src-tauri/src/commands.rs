@@ -652,7 +652,6 @@ pub async fn download_mod_command(
 }
 
 
-//TODO add logging
 #[tauri::command]
 pub async fn get_presets_names(state: State<'_, ConfigState>) -> Result<Vec<String>, String> {
     let config = state.config.lock().map_err(|e| e.to_string())?;
@@ -692,4 +691,41 @@ pub async fn change_preset_name(state: State<'_, ConfigState>, id: String, new_p
     }
     save_config(&state).map_err(|e| e.to_string())?;
     Ok(id.clone())
+}
+
+#[tauri::command]
+pub async fn apply_preset(state: State<'_, ConfigState>, id: String) -> Result<(), String> {
+    let mut mods_to_load: Vec<DeadlockMod> = Vec::default();
+    let mut mods_to_unload: Vec<DeadlockMod> = Vec::default();
+    {
+        let mut config = state.config.lock().map_err(|e| e.to_string())?;
+        let mod_path = PathBuf::from(config.deadlock_path.clone())
+            .join("game")
+            .join("citadel")
+            .join("addons");
+        std::fs::create_dir_all(&mod_path).map_err(|e| e.to_string())?;
+        let preset = config.presets.iter().find(|x| x.id == id).ok_or("Could not find preset with id".to_string())?.clone();
+        let existing_mods = process_mod_directory(&mod_path, &mut *config)?;
+        for preset_mod in preset.mods.loaded_mods {
+            let existing_mod = match existing_mods.loaded_mods.iter().find(|x| x.id == preset_mod.id) {
+                Some(v) => v,
+                None => { continue; }
+            };
+            if !is_mod_loaded(&*existing_mod.file_name) {
+                mods_to_load.push(existing_mod.clone());
+            }
+        }
+        for preset_mod in preset.mods.unloaded_mods {
+            let existing_mod = match existing_mods.unloaded_mods.iter().find(|x| x.id == preset_mod.id) {
+                Some(v) => v,
+                None => { continue; }
+            };
+            if is_mod_loaded(&*existing_mod.file_name) {
+                mods_to_unload.push(existing_mod.clone());
+            }
+        }
+    }
+    apply_changes(mods_to_load, ModOperation::LoadMods, state.clone())?;
+    apply_changes(mods_to_unload, ModOperation::UnloadMods, state.clone())?;
+    Ok(())
 }

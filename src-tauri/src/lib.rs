@@ -108,6 +108,7 @@ pub fn run() {
             commands::get_presets_names,
             commands::create_preset,
             commands::change_preset_name,
+            commands::apply_preset,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
