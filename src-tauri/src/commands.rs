@@ -697,6 +697,7 @@ pub async fn change_preset_name(state: State<'_, ConfigState>, id: String, new_p
 pub async fn apply_preset(state: State<'_, ConfigState>, id: String) -> Result<(), String> {
     let mut mods_to_load: Vec<DeadlockMod> = Vec::default();
     let mut mods_to_unload: Vec<DeadlockMod> = Vec::default();
+    log::info!("Loading preset with id: {}", id);
     {
         let mut config = state.config.lock().map_err(|e| e.to_string())?;
         let mod_path = PathBuf::from(config.deadlock_path.clone())
@@ -727,5 +728,16 @@ pub async fn apply_preset(state: State<'_, ConfigState>, id: String) -> Result<(
     }
     apply_changes(mods_to_load, ModOperation::LoadMods, state.clone())?;
     apply_changes(mods_to_unload, ModOperation::UnloadMods, state.clone())?;
+    Ok(())
+}
+
+#[tauri::command]
+pub async fn delete_preset(state: State<'_, ConfigState>, id: String) -> Result<(), String> {
+    {
+        let mut config = state.config.lock().map_err(|e| e.to_string())?;
+        config.presets.retain(|x| x.id != id);
+        log::info!("Deleted preset with id: {}", id);
+    }
+    save_config(&state).map_err(|e| e.to_string())?;
     Ok(())
 }

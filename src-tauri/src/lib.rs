@@ -109,6 +109,7 @@ pub fn run() {
             commands::create_preset,
             commands::change_preset_name,
             commands::apply_preset,
+            commands::delete_preset,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
