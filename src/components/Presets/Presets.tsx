@@ -2,11 +2,13 @@ import Button from "../Button/Button.tsx";
 import Preset from "./Preset.tsx";
 import {CSSProperties, Ref, useEffect, useState} from "react";
 import {useErrorStore} from "../../stores/useErrorStore.ts";
-import {createPreset, getPresetsNames, PresetName} from "../../generated";
+import {applyPreset, createPreset, deletePreset, getPresetsNames, PresetName} from "../../generated";
+import {useModsStore} from "../../stores/useModsStore.ts";
 
 function Presets({style, ref, setIsOpen}: { style?: CSSProperties, ref?: Ref<any>, setIsOpen: (isPresetWindowOpen: boolean) => void }) {
 
     const [presets, setPresets] = useState<PresetName[]>();
+    const {setMods, getModsFromRust, emptySelectedMods, emptyChangedMods} = useModsStore()
     const {setError, setVisible} = useErrorStore()
 
     useEffect(() => {
@@ -37,13 +39,35 @@ function Presets({style, ref, setIsOpen}: { style?: CSSProperties, ref?: Ref<any
         }
     }
 
+    const onPresetDelete = async (id: string) => {
+        try {
+            await deletePreset({id})
+            await getPresets();
+        } catch (e) {
+            setVisible(true);
+            setError(e);
+        }
+    }
+
+    const onPresetApply = async (id: string) => {
+        try {
+            await applyPreset({id})
+            setMods(await getModsFromRust());
+            emptyChangedMods();
+            emptySelectedMods();
+        } catch (e) {
+            setVisible(true);
+            setError(e);
+        }
+    }
+
     return (
         <div className={"bg-topbar border-2 rounded-md min-w-90 max-w-110"} style={style} ref={ref}>
             <div className={"text-2xl w-full text-center font-bold"}>Presets</div>
             <div className={"border mx-2 min-h-10"}>
                 {presets && presets.length > 0 && (
                     presets.map((preset) => (
-                        <Preset presetName={preset.name}></Preset>
+                        <Preset presetName={preset.name} id={preset.id} onPresetDelete={onPresetDelete} onPresetApply={onPresetApply}></Preset>
                     ))
                 )}
             </div>

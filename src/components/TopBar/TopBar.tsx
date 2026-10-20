@@ -1,6 +1,6 @@
 import Button from "../Button/Button.tsx";
 import Settings from "../Settings/Settings.tsx";
-import {useState} from "react";
+import {useEffect, useState} from "react";
 import {useModsStore} from "../../stores/useModsStore.ts";
 import {useErrorStore} from "../../stores/useErrorStore.ts";
 import AddModModal from "../AddMod/AddModModal.tsx";

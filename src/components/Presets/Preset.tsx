@@ -3,12 +3,13 @@ import {Textfit} from "react-textfit";
 import {useEffect, useState} from "react";
 import {Tooltip} from "@mui/material";
 
-function Preset({presetName}: {presetName: string}) {
+function Preset({presetName, id, onPresetDelete, onPresetApply}: {presetName: string, id: string, onPresetDelete: (id: string) => void, onPresetApply: (id: string) => void}) {
     const [isEditing, setEditing] = useState(false);
     const [inputValue, setInputValue] = useState(presetName);
     useEffect(() => {
         setInputValue(presetName);
     }, [presetName]);
+
     return (
         <div className={"w-full flex justify-between  border-b p-2 last:border-0"}>
             <div className={"text-xl min-w-0 overflow-hidden"}>
@@ -49,8 +50,8 @@ function Preset({presetName}: {presetName: string}) {
                 )}
             </div>
             <div className={"text-sm flex gap-4 ml-2"}>
-                <Button>Delete</Button>
-                <Button>Apply</Button>
+                <Button onClick={() => onPresetDelete(id)}>Delete</Button>
+                <Button onClick={() => onPresetApply(id)}>Apply</Button>
             </div>
         </div>
     )
