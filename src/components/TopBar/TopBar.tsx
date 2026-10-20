@@ -34,7 +34,7 @@ function TopBar() {
                 <Button onClick={onModAddClick}>Add Mod</Button>
                 <Button ref={refs.setReference} onClick={() => setIsPresetWindowOpen(!isPresetWindowOpen)}>Presets</Button>
                 {isPresetWindowOpen && (
-                    <Presets style={floatingStyles} ref={refs.setFloating}/>
+                    <Presets setIsOpen={setIsPresetWindowOpen} style={floatingStyles} ref={refs.setFloating}/>
                 )}
                 <AddModModal modalOpen={addModModalOpen} setModalOpen={setAddModModalOpen}/>
                 <Search/>

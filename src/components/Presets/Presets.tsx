@@ -2,9 +2,9 @@ import Button from "../Button/Button.tsx";
 import Preset from "./Preset.tsx";
 import {CSSProperties, Ref, useEffect, useState} from "react";
 import {useErrorStore} from "../../stores/useErrorStore.ts";
-import {getPresetsNames, PresetName} from "../../generated";
+import {createPreset, getPresetsNames, PresetName} from "../../generated";
 
-function Presets({style, ref}: { style?: CSSProperties, ref?: Ref<any>}) {
+function Presets({style, ref, setIsOpen}: { style?: CSSProperties, ref?: Ref<any>, setIsOpen: (isPresetWindowOpen: boolean) => void }) {
 
     const [presets, setPresets] = useState<PresetName[]>();
     const {setError, setVisible} = useErrorStore()
@@ -23,6 +23,20 @@ function Presets({style, ref}: { style?: CSSProperties, ref?: Ref<any>}) {
         }
     }
 
+    const onClose = () => {
+        setIsOpen(false);
+    }
+
+    const onCreatePreset = async () => {
+        try {
+            await createPreset();
+            await getPresets();
+        } catch (e) {
+            setVisible(true);
+            setError(e);
+        }
+    }
+
     return (
         <div className={"bg-topbar border-2 rounded-md min-w-90 max-w-110"} style={style} ref={ref}>
             <div className={"text-2xl w-full text-center font-bold"}>Presets</div>
@@ -34,8 +48,8 @@ function Presets({style, ref}: { style?: CSSProperties, ref?: Ref<any>}) {
                 )}
             </div>
             <div className={"flex w-full justify-between p-2 mt-4 mb-1"}>
-                <Button>Close</Button>
-                <Button>Create New Preset</Button>
+                <Button onClick={onClose}>Close</Button>
+                <Button onClick={onCreatePreset}>Create New Preset</Button>
             </div>
         </div>
     )
