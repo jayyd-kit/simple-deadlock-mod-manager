@@ -717,7 +717,7 @@ pub async fn apply_preset(state: State<'_, ConfigState>, id: String) -> Result<(
         let preset = config.presets.iter().find(|x| x.id == id).ok_or("Could not find preset with id".to_string())?.clone();
         let existing_mods = process_mod_directory(&mod_path, &mut *config)?;
         for preset_mod in preset.mods.loaded_mods {
-            let existing_mod = match existing_mods.loaded_mods.iter().find(|x| x.id == preset_mod.id) {
+            let existing_mod = match existing_mods.unloaded_mods.iter().find(|x| x.id == preset_mod.id) {
                 Some(v) => v,
                 None => { continue; }
             };
@@ -726,7 +726,7 @@ pub async fn apply_preset(state: State<'_, ConfigState>, id: String) -> Result<(
             }
         }
         for preset_mod in preset.mods.unloaded_mods {
-            let existing_mod = match existing_mods.unloaded_mods.iter().find(|x| x.id == preset_mod.id) {
+            let existing_mod = match existing_mods.loaded_mods.iter().find(|x| x.id == preset_mod.id) {
                 Some(v) => v,
                 None => { continue; }
             };
