@@ -21,7 +21,7 @@ function Presets({style, ref, setIsOpen}: { style?: CSSProperties, ref?: Ref<any
             setPresets(presets)
         } catch (e) {
             setVisible(true);
-            setError(e);
+            setError(e as string);
         }
     }
 
@@ -35,7 +35,7 @@ function Presets({style, ref, setIsOpen}: { style?: CSSProperties, ref?: Ref<any
             await getPresets();
         } catch (e) {
             setVisible(true);
-            setError(e);
+            setError(e as string);
         }
     }
 
@@ -45,7 +45,7 @@ function Presets({style, ref, setIsOpen}: { style?: CSSProperties, ref?: Ref<any
             await getPresets();
         } catch (e) {
             setVisible(true);
-            setError(e);
+            setError(e as string);
         }
     }
 
@@ -57,7 +57,7 @@ function Presets({style, ref, setIsOpen}: { style?: CSSProperties, ref?: Ref<any
             emptySelectedMods();
         } catch (e) {
             setVisible(true);
-            setError(e);
+            setError(e as string);
         }
     }
 

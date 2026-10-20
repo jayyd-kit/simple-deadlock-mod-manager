@@ -31,7 +31,7 @@ function Preset({presetName, id, onPresetDelete, onPresetApply}: {presetName: st
                                 await changePresetName({id, newPresetName: inputValue});
                             } catch (e) {
                                 setVisible(true);
-                                setError(e)
+                                setError(e as string)
                             }
                         }}
                         onKeyDown={async (e) => {
@@ -44,7 +44,7 @@ function Preset({presetName, id, onPresetDelete, onPresetApply}: {presetName: st
                                     await changePresetName({id, newPresetName: inputValue});
                                 } catch (e) {
                                     setVisible(true);
-                                    setError(e)
+                                    setError(e as string)
                                 }
                             }
                         }}
