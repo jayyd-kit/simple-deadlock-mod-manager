@@ -2,10 +2,13 @@ import Button from "../Button/Button.tsx";
 import {Textfit} from "react-textfit";
 import {useEffect, useState} from "react";
 import {Tooltip} from "@mui/material";
+import {useErrorStore} from "../../stores/useErrorStore.ts";
+import {changePresetName} from "../../generated";
 
 function Preset({presetName, id, onPresetDelete, onPresetApply}: {presetName: string, id: string, onPresetDelete: (id: string) => void, onPresetApply: (id: string) => void}) {
     const [isEditing, setEditing] = useState(false);
     const [inputValue, setInputValue] = useState(presetName);
+    const {setError, setVisible} = useErrorStore();
     useEffect(() => {
         setInputValue(presetName);
     }, [presetName]);
@@ -19,20 +22,30 @@ function Preset({presetName, id, onPresetDelete, onPresetApply}: {presetName: st
                         autoFocus
                         maxLength={25}
                         onChange={(e) => setInputValue(e.target.value)}
-                        onBlur={() => {
+                        onBlur={async () => {
                             if (inputValue === "") {
                                 setInputValue(presetName);
                             }
                             setEditing(false);
-                            //TODO change preset name in backend
+                            try {
+                                await changePresetName({id, newPresetName: inputValue});
+                            } catch (e) {
+                                setVisible(true);
+                                setError(e)
+                            }
                         }}
-                        onKeyDown={(e) => {
+                        onKeyDown={async (e) => {
                             if (e.key === "Enter") {
                                 if (inputValue === "") {
                                     setInputValue(presetName);
                                 }
                                 setEditing(false);
-                                //TODO change preset name in backend
+                                try {
+                                    await changePresetName({id, newPresetName: inputValue});
+                                } catch (e) {
+                                    setVisible(true);
+                                    setError(e)
+                                }
                             }
                         }}
                         className="bg-transparent outline-none border w-fit max-w-60"
