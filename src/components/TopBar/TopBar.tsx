@@ -1,6 +1,6 @@
 import Button from "../Button/Button.tsx";
 import Settings from "../Settings/Settings.tsx";
-import {useEffect, useState} from "react";
+import {useState} from "react";
 import {useModsStore} from "../../stores/useModsStore.ts";
 import {useErrorStore} from "../../stores/useErrorStore.ts";
 import AddModModal from "../AddMod/AddModModal.tsx";
@@ -29,7 +29,7 @@ function TopBar() {
 
     return (
         <div className="w-full bg-topbar p-4 flex justify-between sticky top-0 z-10">
-            <h1 className="text-3xl block font-bold">Simple Deadlock Mod Manager 0.6.4</h1>
+            <h1 className="text-3xl block font-bold">Simple Deadlock Mod Manager 0.7.0</h1>
             <div className="flex gap-4">
                 <Button onClick={onModAddClick}>Add Mod</Button>
                 <Button ref={refs.setReference} onClick={() => setIsPresetWindowOpen(!isPresetWindowOpen)}>Presets</Button>
