@@ -23,7 +23,9 @@ interface ModsStore {
     applyModChanges: () => Promise<void>,
     addSelectedMod: (mod: SelectedMod) => void,
     removeSelectedMod: (mod: SelectedMod) => void,
+    emptySelectedMods: () => void,
     changeModLoadStatus: (mods: SelectedMod[]) => void,
+    emptyChangedMods: () => void,
     setMods: (mods: Mods) => void;
     getModsFromRust: () => Promise<Mods>;
     changeModName: (userName: string, fileName: string) => Promise<void>;
@@ -84,6 +86,9 @@ export const useModsStore = create<ModsStore>((set, get) => ({
             selectedMods: s.selectedMods.filter((selectedMod) => selectedMod.fileName !== mod.fileName)
         }));
     },
+    emptySelectedMods: () => {
+        set({selectedMods: []});
+    },
     changeModLoadStatus: (selectedMods: SelectedMod[]) => {
         set((state) => {
             let loaded = [...state.mods.loaded_mods];
@@ -140,6 +145,9 @@ export const useModsStore = create<ModsStore>((set, get) => ({
                 selectedMods: [] //reset selected mods, but keep changedMods
             };
         });
+    },
+    emptyChangedMods: () => {
+        set({changedMods: []});
     },
     setMods: (mods: Mods) => set({mods: mods}),
     getModsFromRust: async () => {
