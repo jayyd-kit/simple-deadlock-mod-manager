@@ -651,11 +651,20 @@ pub async fn download_mod_command(
     }
 }
 
+#[derive(Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct PresetName {
+    name: String,
+    id: String,
+}
 
 #[tauri::command]
-pub async fn get_presets_names(state: State<'_, ConfigState>) -> Result<Vec<String>, String> {
+pub async fn get_presets_names(state: State<'_, ConfigState>) -> Result<Vec<PresetName>, String> {
     let config = state.config.lock().map_err(|e| e.to_string())?;
-    Ok(config.presets.iter().map(|x| x.preset_name.clone()).collect())
+    Ok(config.presets.iter().map(|x| {PresetName {
+        id: x.id.clone(),
+        name: x.preset_name.clone(),
+    }}).collect())
 }
 
 #[tauri::command]
