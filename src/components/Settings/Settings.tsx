@@ -5,13 +5,14 @@ import {
     changePath,
     checkGameinfoValidity,
     getAutoDetectDeadlockPath,
-    getConfig,
-    makeConfigValid, setConfig
+    getConfig, getFov,
+    makeConfigValid, setConfig, setFov
 } from "../../generated";
 import {useModsStore} from "../../stores/useModsStore.ts";
 import {useErrorStore} from "../../stores/useErrorStore.ts";
 import {open} from "@tauri-apps/plugin-dialog";
 import {useSettingsStore} from "../../stores/useSettingsStore.ts";
+import {Numbers} from "@mui/icons-material";
 
 function Settings({isOpen, onClose}: { isOpen: boolean, onClose: () => void }) {
     const {setVisible, setError} = useErrorStore();
@@ -20,9 +21,10 @@ function Settings({isOpen, onClose}: { isOpen: boolean, onClose: () => void }) {
     const [path, setPath] = useState("");
     const [validConfig, setValidConfig] = useState<boolean>(false);
     const [loading, setLoading] = useState<boolean>(true);
+    const [fovInputValue, setFovInputValue] = useState<number>(0);
     useEffect(() => {
         getSettingsConfig();
-    }, [])
+    }, [isOpen])
 
     const getSettingsConfig = async () => {
         try {
@@ -37,6 +39,7 @@ function Settings({isOpen, onClose}: { isOpen: boolean, onClose: () => void }) {
             }
             setFileNameAlwaysVisible(config.settings.always_show_file_names)
             setValidConfig(await checkGameinfoValidity())
+            setFovInputValue(await getFov());
         } catch (e) {
             setVisible(true);
             setError(e as string);
@@ -52,6 +55,7 @@ function Settings({isOpen, onClose}: { isOpen: boolean, onClose: () => void }) {
             let config = await getConfig();
             config.settings.always_show_file_names = fileNameAlwaysVisible;
             await setConfig({newConfig: config});
+            await setFov({newFov: fovInputValue});
             onClose();
         } catch (e) {
             setVisible(true);
@@ -100,12 +104,15 @@ function Settings({isOpen, onClose}: { isOpen: boolean, onClose: () => void }) {
                             </div>
                             {!loading && (
                                 <>
-                                    <div className="mt-8 text-xl">
+                                    <div className="text-white mt-8 text-xl font-extrabold border-b pb-2">
+                                        Mod Manager Settings
+                                    </div>
+                                    <div className="mt-6 text-xl">
                                         <label className="block mb-2" htmlFor="pathInput">
                                             Deadlock Path
                                         </label>
                                         <div className="flex gap-4">
-                                            <div className="bg-gray-800 grow mr-9"><input id="pathInput" value={path}
+                                            <div className="bg-gray-800 grow mr-8"><input id="pathInput" value={path}
                                                                                           onChange={(e) => {
                                                                                               setPath(e.target.value)
                                                                                           }}
@@ -121,7 +128,7 @@ function Settings({isOpen, onClose}: { isOpen: boolean, onClose: () => void }) {
                                                                                                   }
                                                                                               }
                                                                                           }}
-                                                                                          className="text-lg m-1 w-full mr-1"/>
+                                                                                          className="text-lg m-1 w-full pr-2"/>
                                             </div>
                                             <Button onClick={onBrowseClick}>
                                                 Browse
@@ -164,6 +171,22 @@ function Settings({isOpen, onClose}: { isOpen: boolean, onClose: () => void }) {
                                             }}
                                             className={"w-6 h-6 border border-default-medium rounded-xs bg-neutral-secondary-medium focus:ring-2 focus:ring-brand-soft"}
                                             type={"checkbox"}/>
+                                    </div>
+                                    <div className="text-white mt-8 text-xl font-extrabold border-b pb-2">
+                                        Deadlock Settings
+                                    </div>
+                                    <div className="mt-6 text-xl flex gap-2 justify-between">
+                                        <div className="text-xl">Field Of View</div>
+                                        <div className="flex gap-2">
+                                            <input
+                                                value={fovInputValue}
+                                                onChange={(e: ChangeEvent<HTMLInputElement>) => {
+                                                    setFovInputValue(parseInt(e.target.value));
+                                                }}
+                                                className={"no-spinner bg-gray-800 border border-default-medium rounded-xs text-center w-20"}
+                                                type={"number"}/>
+                                        </div>
+
                                     </div>
                                 </>
                             )}

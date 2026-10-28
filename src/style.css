@@ -24,3 +24,13 @@
     --color-darkBlue: #2A3E59;
     --font-sans: "Retail Demo", sans-serif;
 }
+
+@utility no-spinner {
+    appearance: textfield;
+
+    &::-webkit-outer-spin-button,
+    &::-webkit-inner-spin-button {
+        appearance: none;
+        margin: 0;
+    }
+}
