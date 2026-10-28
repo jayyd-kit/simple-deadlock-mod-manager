@@ -34,7 +34,7 @@ Go to the [Releases Page](https://github.com/Gabri3445/simple-deadlock-mod-manag
 #### Arch (using pacman/yay/paru)
 
 - Run `yay -S simple-deadlock-mod-manager`
-- Or run `yay -S simple-deadlock-mod-manager-git` (outdated)
+- Or run `yay -S simple-deadlock-mod-manager-git` (outdated until I can figure out how to make it compile)
 
 #### All of the above and any other distro
 
@@ -53,6 +53,7 @@ Go to the [Releases Page](https://github.com/Gabri3445/simple-deadlock-mod-manag
 - [x] Load `.vpk` files directly from `.zip` or `.rar` archives
 - [x] Download mods directly from **GameBanana**
 - [x] Presets
+- [x] In-game Field Of View
 - [ ] Check for mod updates
 
 
@@ -69,7 +70,7 @@ Go to the [Releases Page](https://github.com/Gabri3445/simple-deadlock-mod-manag
 - Select the mods you wish to load and use the `>>` button to load them and the `<<` button to unload them
 - Click **Apply**
 
-**Attention: Almost everytime deadlock is updated, the gameinfo.gi file becomes invalid, make sure to validate it and make it valid if needed**
+**Attention: Almost everytime deadlock is updated, the gameinfo.gi file becomes invalid, make sure to validate it if needed**
 
 This app is still early in development and while it should not mess anything up, I would recommend backing up your mods every so often. <br>
 If deadlock fails to start due to a corrupt gameinfo.gi file simply verify the integrity of the game files through steam. (Make sure to revalidate the file if you want mods to load)<br>
