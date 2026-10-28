@@ -110,7 +110,8 @@ pub fn run() {
             commands::change_preset_name,
             commands::apply_preset,
             commands::delete_preset,
-            commands::get_fov
+            commands::get_fov,
+            commands::set_fov
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

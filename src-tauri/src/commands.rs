@@ -2,7 +2,7 @@ use crate::config::{save_config, ConfigState, ModManagerConfigV2};
 use crate::gamebanana_api::api::{download_mod, get_mod_files};
 use crate::gamebanana_api::types::FileEntry;
 use crate::types::{CompressedFileType, Mods, ModOperation, DeadlockMod, Preset};
-use crate::utils::{aspect_ratio_to_fov, generate_uuid, is_deadlock_path_valid, is_mod_loaded, list_vpk_files, process_mod_directory, update_config_mod_file_name};
+use crate::utils::{aspect_ratio_to_fov, fov_to_aspect_ratio, generate_uuid, is_deadlock_path_valid, is_mod_loaded, list_vpk_files, process_mod_directory, update_config_mod_file_name};
 use rand::RngExt;
 use serde::Serialize;
 use std::fs::DirEntry;
@@ -751,7 +751,28 @@ pub async fn get_fov(state: State<'_, ConfigState>) -> Result<i32, String> {
     if aspect_ratio.is_none() {
         return Err("Could not find aspect ratio".to_string());
     }
-    let aspect_ratio = aspect_ratio.unwrap();
+    let aspect_ratio = aspect_ratio.unwrap().parse::<f32>().map_err(|e| e.to_string())?;
+    log::info!("Detected Aspect ratio: {0}, Fov: {1}", aspect_ratio, aspect_ratio_to_fov(aspect_ratio));
+    Ok(aspect_ratio_to_fov(aspect_ratio))
+}
 
-    Ok(aspect_ratio_to_fov(aspect_ratio.parse::<f32>().unwrap()))
+#[tauri::command]
+pub async fn set_fov(state: State<'_, ConfigState>, new_fov: i32) -> Result<(), String> {
+    let config = state.config.lock().map_err(|e| e.to_string())?;
+    let gameinfo_path = PathBuf::from(config.deadlock_path.clone())
+        .join("game")
+        .join("citadel")
+        .join("gameinfo.gi");
+    if !gameinfo_path.is_file() {
+        log::error!("Gameinfo path is not a file");
+        return Err("Could not find gameinfo.gi".to_string());
+    }
+    let r = Regex::new(ASPECT_RATIO_REGEX).unwrap();
+    let config_content = std::fs::read_to_string(&gameinfo_path).map_err(|e| e.to_string())?;
+    let aspect_ratio = fov_to_aspect_ratio(new_fov);
+    let result = r.replace(config_content.as_str(), |caps: &regex::Captures| {
+        format!("{} \"{}\"", &caps[1], aspect_ratio)
+    }).to_string();
+    std::fs::write(gameinfo_path, result).map_err(|e| e.to_string())?;
+    Ok(())
 }

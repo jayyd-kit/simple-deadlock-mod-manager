@@ -119,6 +119,6 @@ pub fn aspect_ratio_to_fov(aspect_ratio: f32) -> i32 {
     (27.1463 * aspect_ratio + 31.9058) as i32
 }
 
-pub fn fov_to_aspect_ratio(fov: f32) -> f32 {
-    (fov - 31.9058) / 27.1463
+pub fn fov_to_aspect_ratio(fov: i32) -> f32 {
+    (fov as f32 - 31.9058) / 27.1463
 }
