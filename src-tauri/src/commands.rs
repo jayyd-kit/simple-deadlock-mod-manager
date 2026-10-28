@@ -2,11 +2,12 @@ use crate::config::{save_config, ConfigState, ModManagerConfigV2};
 use crate::gamebanana_api::api::{download_mod, get_mod_files};
 use crate::gamebanana_api::types::FileEntry;
 use crate::types::{CompressedFileType, Mods, ModOperation, DeadlockMod, Preset};
-use crate::utils::{generate_uuid, is_deadlock_path_valid, is_mod_loaded, list_vpk_files, process_mod_directory, update_config_mod_file_name};
+use crate::utils::{aspect_ratio_to_fov, generate_uuid, is_deadlock_path_valid, is_mod_loaded, list_vpk_files, process_mod_directory, update_config_mod_file_name};
 use rand::RngExt;
 use serde::Serialize;
 use std::fs::DirEntry;
 use std::path::PathBuf;
+use regex::Regex;
 use tauri::{AppHandle, Emitter, State};
 use unrar::Archive;
 use url::Url;
@@ -730,4 +731,27 @@ pub async fn delete_preset(state: State<'_, ConfigState>, id: String) -> Result<
     }
     save_config(&state).map_err(|e| e.to_string())?;
     Ok(())
+}
+
+const ASPECT_RATIO_REGEX: &str = r#"(r_aspectratio)\s*"(\d*\.?\d*)""#;
+#[tauri::command]
+pub async fn get_fov(state: State<'_, ConfigState>) -> Result<i32, String> {
+    let config = state.config.lock().map_err(|e| e.to_string())?;
+    let gameinfo_path = PathBuf::from(config.deadlock_path.clone())
+        .join("game")
+        .join("citadel")
+        .join("gameinfo.gi");
+    if !gameinfo_path.is_file() {
+        log::error!("Gameinfo path is not a file");
+        return Err("Could not find gameinfo.gi".to_string());
+    }
+    let r = Regex::new(ASPECT_RATIO_REGEX).unwrap();
+    let config_content = std::fs::read_to_string(gameinfo_path).map_err(|e| e.to_string())?;
+    let aspect_ratio = r.captures(config_content.as_str()).and_then(|c| {c.get(2).map(|m| m.as_str().to_string())});
+    if aspect_ratio.is_none() {
+        return Err("Could not find aspect ratio".to_string());
+    }
+    let aspect_ratio = aspect_ratio.unwrap();
+
+    Ok(aspect_ratio_to_fov(aspect_ratio.parse::<f32>().unwrap()))
 }

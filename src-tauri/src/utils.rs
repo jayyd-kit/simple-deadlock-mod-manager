@@ -114,3 +114,11 @@ pub fn is_mod_loaded(mod_file_name: &str) -> bool {
 pub fn generate_uuid() -> String {
     Uuid::new_v4().to_string()
 }
+
+pub fn aspect_ratio_to_fov(aspect_ratio: f32) -> i32 {
+    (27.1463 * aspect_ratio + 31.9058) as i32
+}
+
+pub fn fov_to_aspect_ratio(fov: f32) -> f32 {
+    (fov - 31.9058) / 27.1463
+}
