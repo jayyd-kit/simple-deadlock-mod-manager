@@ -95,7 +95,7 @@ function Settings({isOpen, onClose}: { isOpen: boolean, onClose: () => void }) {
 
     return (
         <Modal onClose={onClose} open={isOpen}>
-            <div className="absolute top-1/2 left-1/2 -translate-1/2 w-2/4 h-2/3 bg-darkBlue rounded-md min-w-160">
+            <div className="absolute top-1/2 left-1/2 -translate-1/2 w-2/4 h-2/3 bg-darkBlue rounded-md min-w-160 overflow-auto">
                 <div className="mx-8 h-full">
                     <div className="flex flex-col justify-between h-full">
                         <div>
@@ -191,7 +191,7 @@ function Settings({isOpen, onClose}: { isOpen: boolean, onClose: () => void }) {
                                 </>
                             )}
                         </div>
-                        <div className="mb-8">
+                        <div className="mb-8 mt-4">
                             <div className="flex w-full justify-between">
                                 <Button onClick={onClose}>Close</Button>
                                 <Button onClick={onApply}>Apply</Button>
