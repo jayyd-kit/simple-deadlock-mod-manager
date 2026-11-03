@@ -1,9 +1,14 @@
 import Button from "../../Button/Button.tsx";
-import makeConfigValid, {checkGameinfoValidity} from "../../../generated";
+import {checkGameinfoValidity, makeConfigValid} from "../../../generated";
 import {useErrorStore} from "../../../stores/useErrorStore.ts";
 import {ChangeEvent} from "react";
 
-function DeadlockSettings({validConfig, setValidConfig, fovInputValue, setFovInputValue}: {validConfig: boolean, setValidConfig: (validConfig: boolean) => void, fovInputValue: number, setFovInputValue: (fovInputValue: number) => void}) {
+function DeadlockSettings({validConfig, setValidConfig, fovInputValue, setFovInputValue}: {
+    validConfig: boolean,
+    setValidConfig: (validConfig: boolean) => void,
+    fovInputValue: number,
+    setFovInputValue: (fovInputValue: number) => void
+}) {
     const {setVisible, setError} = useErrorStore();
 
     return (

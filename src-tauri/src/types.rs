@@ -12,8 +12,6 @@ pub struct ModName {
     pub user_name: String,
 }*/
 
-
-
 #[derive(Clone, Default, Deserialize, Serialize)]
 pub struct DeadlockMod {
     pub file_name: String,

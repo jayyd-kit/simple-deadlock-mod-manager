@@ -1,4 +1,4 @@
-use crate::config::{ModManagerConfigV2};
+use crate::config::ModManagerConfigV2;
 use crate::types::{DeadlockMod, ModOperation, Mods};
 use regex::Regex;
 use std::path::{Path, PathBuf};
@@ -10,7 +10,7 @@ pub fn update_config_mod_file_name(
     config: &mut MutexGuard<ModManagerConfigV2>,
     mod_name: &DeadlockMod,
     new_name: String,
-    operation: ModOperation
+    operation: ModOperation,
 ) {
     /*if config.mod_names.remove(&mod_name.file_name).is_some() {
         if mod_name.file_name == mod_name.user_name {
@@ -22,7 +22,11 @@ pub fn update_config_mod_file_name(
         }
     }*/
 
-    if let Some(index) = config.mods.iter().position(|x| x.file_name == mod_name.file_name) {
+    if let Some(index) = config
+        .mods
+        .iter()
+        .position(|x| x.file_name == mod_name.file_name)
+    {
         config.mods[index].file_name = new_name;
     }
 }
@@ -50,16 +54,21 @@ pub fn process_mod_directory(
     let mut result = Mods::default();
 
     if mod_path.is_dir() {
-        for entry in std::fs::read_dir(mod_path).map_err(|e| e.to_string())? { //read dir
+        for entry in std::fs::read_dir(mod_path).map_err(|e| e.to_string())? {
+            //read dir
             let entry = entry.map_err(|e| e.to_string())?;
-            if entry.file_type().map_err(|e| e.to_string())?.is_file() { //we only care if it is a file
+            if entry.file_type().map_err(|e| e.to_string())?.is_file() {
+                //we only care if it is a file
                 let file_name = entry.file_name().to_string_lossy().into_owned();
 
                 // If the user has specified a name then load that
                 // If we already have the mod in the config load the id
-                let existing_data = if let Some(existing_mod) = config.mods.iter().find(|m| m.file_name == file_name) {
+                let existing_data = if let Some(existing_mod) =
+                    config.mods.iter().find(|m| m.file_name == file_name)
+                {
                     (existing_mod.user_name.clone(), existing_mod.id.clone())
-                } else { //otherwise default the username to the filename
+                } else {
+                    //otherwise default the username to the filename
                     let id = generate_uuid();
                     config.mods.push(DeadlockMod {
                         file_name: file_name.clone(),

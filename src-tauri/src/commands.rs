@@ -1,13 +1,16 @@
 use crate::config::{save_config, ConfigState, ModManagerConfigV2};
 use crate::gamebanana_api::api::{download_mod, get_mod_files};
 use crate::gamebanana_api::types::FileEntry;
-use crate::types::{CompressedFileType, Mods, ModOperation, DeadlockMod, Preset};
-use crate::utils::{aspect_ratio_to_fov, fov_to_aspect_ratio, generate_uuid, is_deadlock_path_valid, is_mod_loaded, list_vpk_files, process_mod_directory, update_config_mod_file_name};
+use crate::types::{CompressedFileType, DeadlockMod, ModOperation, Mods, Preset};
+use crate::utils::{
+    aspect_ratio_to_fov, fov_to_aspect_ratio, generate_uuid, is_deadlock_path_valid, is_mod_loaded,
+    list_vpk_files, process_mod_directory, update_config_mod_file_name,
+};
 use rand::RngExt;
+use regex::Regex;
 use serde::Serialize;
 use std::fs::DirEntry;
 use std::path::PathBuf;
-use regex::Regex;
 use tauri::{AppHandle, Emitter, State};
 use unrar::Archive;
 use url::Url;
@@ -141,7 +144,11 @@ pub fn list_mods(state: State<ConfigState>) -> Result<Mods, String> {
                 present = true
             }
             if !present {
-                if let Some(index) = config.mods.iter().position(|x| x.file_name == config_mod.file_name) {
+                if let Some(index) = config
+                    .mods
+                    .iter()
+                    .position(|x| x.file_name == config_mod.file_name)
+                {
                     config.mods.remove(index);
                 }
             }
@@ -229,7 +236,7 @@ pub fn change_mod_name(
 ) -> Result<String, String> {
     {
         let mut config = state.config.lock().map_err(|e| e.to_string())?;
-        if !config.mods.iter().any(|x| {x.file_name == file_name}) {
+        if !config.mods.iter().any(|x| x.file_name == file_name) {
             return Err("File name is not valid".to_string());
         }
         if user_name == "" {
@@ -241,7 +248,11 @@ pub fn change_mod_name(
             .entry(file_name.clone())
             .or_insert(file_name);
         *mod_name = user_name.clone();*/
-        let mod_index = config.mods.iter().position(|x| x.file_name == file_name).unwrap();
+        let mod_index = config
+            .mods
+            .iter()
+            .position(|x| x.file_name == file_name)
+            .unwrap();
         config.mods[mod_index].user_name = user_name.clone();
     }
     save_config(&state).map_err(|e| e.to_string())?;
@@ -305,7 +316,12 @@ pub fn apply_changes(
                                 if !new_path.exists() {
                                     std::fs::rename(entry.path(), new_path)
                                         .map_err(|e| e.to_string())?;
-                                    update_config_mod_file_name(&mut config, &mod_to_load, new_name, ModOperation::LoadMods);
+                                    update_config_mod_file_name(
+                                        &mut config,
+                                        &mod_to_load,
+                                        new_name,
+                                        ModOperation::LoadMods,
+                                    );
                                     break;
                                 }
                                 if pak_number > 99 {
@@ -352,7 +368,12 @@ pub fn apply_changes(
                                 )
                             );
                             std::fs::rename(entry.path(), new_path).map_err(|e| e.to_string())?;
-                            update_config_mod_file_name(&mut config, &mod_to_unload, new_name, ModOperation::UnloadMods);
+                            update_config_mod_file_name(
+                                &mut config,
+                                &mod_to_unload,
+                                new_name,
+                                ModOperation::UnloadMods,
+                            );
                         }
                     }
                 }
@@ -409,13 +430,11 @@ pub fn copy_mod_to_game(
         std::fs::copy(fpath, &mod_path).map_err(|e| e.to_string())?;
         log::info!("Copying mod {} to {}", &path, mod_path.display());
         if user_name.is_some() {
-            config
-                .mods
-                .push(DeadlockMod {
-                    file_name: fname.clone(),
-                    user_name: user_name.unwrap().to_string(),
-                    id: generate_uuid(),
-                });
+            config.mods.push(DeadlockMod {
+                file_name: fname.clone(),
+                user_name: user_name.unwrap().to_string(),
+                id: generate_uuid(),
+            });
         }
     }
     save_config(&state).map_err(|e| e.to_string())?;
@@ -642,10 +661,14 @@ pub struct PresetName {
 #[tauri::command]
 pub async fn get_presets_names(state: State<'_, ConfigState>) -> Result<Vec<PresetName>, String> {
     let config = state.config.lock().map_err(|e| e.to_string())?;
-    Ok(config.presets.iter().map(|x| {PresetName {
-        id: x.id.clone(),
-        name: x.preset_name.clone(),
-    }}).collect())
+    Ok(config
+        .presets
+        .iter()
+        .map(|x| PresetName {
+            id: x.id.clone(),
+            name: x.preset_name.clone(),
+        })
+        .collect())
 }
 
 #[tauri::command]
@@ -672,11 +695,24 @@ pub async fn create_preset(state: State<'_, ConfigState>) -> Result<String, Stri
 }
 
 #[tauri::command]
-pub async fn change_preset_name(state: State<'_, ConfigState>, id: String, new_preset_name: String) -> Result<String, String> {
+pub async fn change_preset_name(
+    state: State<'_, ConfigState>,
+    id: String,
+    new_preset_name: String,
+) -> Result<String, String> {
     {
         let mut config = state.config.lock().map_err(|e| e.to_string())?;
-        let preset = config.presets.iter_mut().find(|x| x.id == id).ok_or("Could not find preset with id".to_string())?;
-        log::info!("Changed preset with id: {0}, from \"{1}\" to \"{2}\" ", id, preset.preset_name, new_preset_name);
+        let preset = config
+            .presets
+            .iter_mut()
+            .find(|x| x.id == id)
+            .ok_or("Could not find preset with id".to_string())?;
+        log::info!(
+            "Changed preset with id: {0}, from \"{1}\" to \"{2}\" ",
+            id,
+            preset.preset_name,
+            new_preset_name
+        );
         preset.preset_name = new_preset_name;
     }
     save_config(&state).map_err(|e| e.to_string())?;
@@ -695,21 +731,38 @@ pub async fn apply_preset(state: State<'_, ConfigState>, id: String) -> Result<(
             .join("citadel")
             .join("addons");
         std::fs::create_dir_all(&mod_path).map_err(|e| e.to_string())?;
-        let preset = config.presets.iter().find(|x| x.id == id).ok_or("Could not find preset with id".to_string())?.clone();
+        let preset = config
+            .presets
+            .iter()
+            .find(|x| x.id == id)
+            .ok_or("Could not find preset with id".to_string())?
+            .clone();
         let existing_mods = process_mod_directory(&mod_path, &mut *config)?;
         for preset_mod in preset.mods.loaded_mods {
-            let existing_mod = match existing_mods.unloaded_mods.iter().find(|x| x.id == preset_mod.id) {
+            let existing_mod = match existing_mods
+                .unloaded_mods
+                .iter()
+                .find(|x| x.id == preset_mod.id)
+            {
                 Some(v) => v,
-                None => { continue; }
+                None => {
+                    continue;
+                }
             };
             if !is_mod_loaded(&*existing_mod.file_name) {
                 mods_to_load.push(existing_mod.clone());
             }
         }
         for preset_mod in preset.mods.unloaded_mods {
-            let existing_mod = match existing_mods.loaded_mods.iter().find(|x| x.id == preset_mod.id) {
+            let existing_mod = match existing_mods
+                .loaded_mods
+                .iter()
+                .find(|x| x.id == preset_mod.id)
+            {
                 Some(v) => v,
-                None => { continue; }
+                None => {
+                    continue;
+                }
             };
             if is_mod_loaded(&*existing_mod.file_name) {
                 mods_to_unload.push(existing_mod.clone());
@@ -746,7 +799,9 @@ pub async fn get_fov(state: State<'_, ConfigState>) -> Result<i32, String> {
     }
     let r = Regex::new(ASPECT_RATIO_REGEX).unwrap();
     let mut config_content = std::fs::read_to_string(&gameinfo_path).map_err(|e| e.to_string())?;
-    let mut aspect_ratio = r.captures(config_content.as_str()).and_then(|c| {c.get(2).map(|m| m.as_str().to_string())});
+    let mut aspect_ratio = r
+        .captures(config_content.as_str())
+        .and_then(|c| c.get(2).map(|m| m.as_str().to_string()));
     if aspect_ratio.is_none() {
         log::warn!("Could not find aspect ratio");
         if let Some(start_idx) = config_content.find("ConVars") {
@@ -761,13 +816,23 @@ pub async fn get_fov(state: State<'_, ConfigState>) -> Result<i32, String> {
                 }
             }
 
-            config_content.insert_str(insert_idx, format!("        r_aspectratio \"{}\"\n", fov_to_aspect_ratio(90)).as_str());
+            config_content.insert_str(
+                insert_idx,
+                format!("        r_aspectratio \"{}\"\n", fov_to_aspect_ratio(90)).as_str(),
+            );
             std::fs::write(gameinfo_path, config_content).map_err(|e| e.to_string())?;
             aspect_ratio = Some(fov_to_aspect_ratio(90).to_string());
         }
     }
-    let aspect_ratio = aspect_ratio.unwrap().parse::<f32>().map_err(|e| e.to_string())?;
-    log::info!("Detected Aspect ratio: {0}, Fov: {1}", aspect_ratio, aspect_ratio_to_fov(aspect_ratio));
+    let aspect_ratio = aspect_ratio
+        .unwrap()
+        .parse::<f32>()
+        .map_err(|e| e.to_string())?;
+    log::info!(
+        "Detected Aspect ratio: {0}, Fov: {1}",
+        aspect_ratio,
+        aspect_ratio_to_fov(aspect_ratio)
+    );
     Ok(aspect_ratio_to_fov(aspect_ratio))
 }
 
@@ -785,9 +850,11 @@ pub async fn set_fov(state: State<'_, ConfigState>, new_fov: i32) -> Result<(), 
     let r = Regex::new(ASPECT_RATIO_REGEX).unwrap();
     let config_content = std::fs::read_to_string(&gameinfo_path).map_err(|e| e.to_string())?;
     let aspect_ratio = fov_to_aspect_ratio(new_fov);
-    let result = r.replace(config_content.as_str(), |caps: &regex::Captures| {
-        format!("{} \"{}\"", &caps[1], aspect_ratio)
-    }).to_string();
+    let result = r
+        .replace(config_content.as_str(), |caps: &regex::Captures| {
+            format!("{} \"{}\"", &caps[1], aspect_ratio)
+        })
+        .to_string();
     std::fs::write(gameinfo_path, result).map_err(|e| e.to_string())?;
     Ok(())
 }

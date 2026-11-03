@@ -32,7 +32,8 @@ function TopBar() {
             <h1 className="text-3xl block font-bold">Simple Deadlock Mod Manager 0.7.1</h1>
             <div className="flex gap-4">
                 <Button onClick={onModAddClick}>Add Mod</Button>
-                <Button ref={refs.setReference} onClick={() => setIsPresetWindowOpen(!isPresetWindowOpen)}>Presets</Button>
+                <Button ref={refs.setReference}
+                        onClick={() => setIsPresetWindowOpen(!isPresetWindowOpen)}>Presets</Button>
                 {isPresetWindowOpen && (
                     <Presets setIsOpen={setIsPresetWindowOpen} style={floatingStyles} ref={refs.setFloating}/>
                 )}

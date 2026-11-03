@@ -23,10 +23,11 @@ function DeleteModal() {
     }
     return (
         <Modal open={modalOpen} onClose={() => setModalOpen(false)}>
-            <div className="absolute top-1/2 left-1/2 -translate-1/2 w-2/8 h-2/14 bg-darkBlue rounded-md min-w-100 min-h-30">
+            <div
+                className="absolute top-1/2 left-1/2 -translate-1/2 w-2/8 h-2/14 bg-darkBlue rounded-md min-w-100 min-h-30">
                 <div className="flex flex-col justify-around h-full w-full">
                     <div className="text-center w-full">
-                        <Textfit mode={"multi"} >
+                        <Textfit mode={"multi"}>
                             Are you sure you want to delete <span className="font-bold">"{userName}"</span> ({fileName})?
                         </Textfit>
                     </div>

@@ -6,7 +6,11 @@ import {open} from "@tauri-apps/plugin-dialog";
 import {useSettingsStore} from "../../../stores/useSettingsStore.ts";
 import Button from "../../Button/Button.tsx";
 
-function ModManagerSettings({path, setPath, setValidConfig}: {path: string, setPath: (path: string) => void, setValidConfig: (validConfig: boolean) => void}) {
+function ModManagerSettings({path, setPath, setValidConfig}: {
+    path: string,
+    setPath: (path: string) => void,
+    setValidConfig: (validConfig: boolean) => void
+}) {
 
 
     const {setMods, getModsFromRust} = useModsStore();

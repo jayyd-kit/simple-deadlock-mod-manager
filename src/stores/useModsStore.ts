@@ -1,4 +1,4 @@
-import {applyChanges, changeModName, listMods, DeadlockMod, Mods, ModOperation} from "../generated";
+import {applyChanges, changeModName, DeadlockMod, listMods, ModOperation, Mods} from "../generated";
 import {create} from "zustand";
 import {ModTabVariant} from "../components/ModTab/ModTab.tsx";
 

@@ -1,10 +1,10 @@
+use crate::types::{DeadlockMod, Preset};
 use crate::utils::{generate_uuid, is_mod_loaded};
 use directories::ProjectDirs;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::path::PathBuf;
 use std::sync::Mutex;
-use crate::types::{DeadlockMod, Preset};
 /*
 todo: could link each mod to a gamebanana link to check for updates
 another hashmap with <file name, gamebanana link>
@@ -34,7 +34,9 @@ impl Default for ModManagerConfigV2 {
             deadlock_path: "".to_string(),
             mods: Vec::default(),
             presets: Vec::default(),
-            settings: Settings {always_show_file_names: false},
+            settings: Settings {
+                always_show_file_names: false,
+            },
             version: "2".to_string(),
         }
     }
@@ -44,8 +46,6 @@ impl Default for ModManagerConfigV2 {
 pub struct Settings {
     always_show_file_names: bool,
 }
-
-
 
 fn v1_version_default() -> String {
     "1".to_string()
@@ -137,7 +137,8 @@ pub fn load_config() -> Result<ModManagerConfigV2, Box<dyn std::error::Error>> {
             //upgrade to V2
             let mut result: Vec<DeadlockMod> = Vec::default();
             log::warn!("Updating config to V2");
-            config_v1.mod_names.iter().for_each(|mod_name| { //convert to hashmap to array of Mod
+            config_v1.mod_names.iter().for_each(|mod_name| {
+                //convert to hashmap to array of Mod
                 result.push(DeadlockMod {
                     file_name: mod_name.0.to_string(),
                     user_name: mod_name.1.to_string(),
@@ -145,7 +146,11 @@ pub fn load_config() -> Result<ModManagerConfigV2, Box<dyn std::error::Error>> {
                 })
             });
 
-            let backup_path = config_path.clone().parent().unwrap().join("configV1.json.bak");
+            let backup_path = config_path
+                .clone()
+                .parent()
+                .unwrap()
+                .join("configV1.json.bak");
             {
                 if let Some(parent) = backup_path.parent() {
                     std::fs::create_dir_all(parent).map_err(|_| {
@@ -167,7 +172,9 @@ pub fn load_config() -> Result<ModManagerConfigV2, Box<dyn std::error::Error>> {
                 presets: Vec::default(),
                 version: "2".to_string(),
                 deadlock_path: "".to_string(),
-                settings: Settings { always_show_file_names: false },
+                settings: Settings {
+                    always_show_file_names: false,
+                },
             };
             save_config(&ConfigState {
                 config_path,

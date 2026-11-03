@@ -5,7 +5,12 @@ import {Tooltip} from "@mui/material";
 import {useErrorStore} from "../../stores/useErrorStore.ts";
 import {changePresetName} from "../../generated";
 
-function Preset({presetName, id, onPresetDelete, onPresetApply}: {presetName: string, id: string, onPresetDelete: (id: string) => void, onPresetApply: (id: string) => void}) {
+function Preset({presetName, id, onPresetDelete, onPresetApply}: {
+    presetName: string,
+    id: string,
+    onPresetDelete: (id: string) => void,
+    onPresetApply: (id: string) => void
+}) {
     const [isEditing, setEditing] = useState(false);
     const [inputValue, setInputValue] = useState(presetName);
     const {setError, setVisible} = useErrorStore();

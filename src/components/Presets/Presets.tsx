@@ -5,7 +5,11 @@ import {useErrorStore} from "../../stores/useErrorStore.ts";
 import {applyPreset, createPreset, deletePreset, getPresetsNames, PresetName} from "../../generated";
 import {useModsStore} from "../../stores/useModsStore.ts";
 
-function Presets({style, ref, setIsOpen}: { style?: CSSProperties, ref?: Ref<any>, setIsOpen: (isPresetWindowOpen: boolean) => void }) {
+function Presets({style, ref, setIsOpen}: {
+    style?: CSSProperties,
+    ref?: Ref<any>,
+    setIsOpen: (isPresetWindowOpen: boolean) => void
+}) {
 
     const [presets, setPresets] = useState<PresetName[]>();
     const {setMods, getModsFromRust, emptySelectedMods, emptyChangedMods} = useModsStore()
@@ -67,7 +71,8 @@ function Presets({style, ref, setIsOpen}: { style?: CSSProperties, ref?: Ref<any
             <div className={"border mx-2 min-h-10"}>
                 {presets && presets.length > 0 && (
                     presets.map((preset) => (
-                        <Preset presetName={preset.name} id={preset.id} onPresetDelete={onPresetDelete} onPresetApply={onPresetApply}></Preset>
+                        <Preset presetName={preset.name} id={preset.id} onPresetDelete={onPresetDelete}
+                                onPresetApply={onPresetApply}></Preset>
                     ))
                 )}
             </div>

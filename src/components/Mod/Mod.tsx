@@ -8,7 +8,12 @@ import {Settings} from "@mui/icons-material";
 import {useModManageStore} from "../../stores/useModManageStore.ts";
 import {useSettingsStore} from "../../stores/useSettingsStore.ts";
 
-function Mod({modName, fileName, variant, id}: { modName: string, fileName: string, variant: ModTabVariant, id: string }) {
+function Mod({modName, fileName, variant, id}: {
+    modName: string,
+    fileName: string,
+    variant: ModTabVariant,
+    id: string
+}) {
     const {setVisible, setError} = useErrorStore();
     const colors = ["bg-gunItem", "bg-vitalityItem", "bg-spiritItem"];
     const {changeModName, addSelectedMod, removeSelectedMod, selectedMods, changedMods} = useModsStore();

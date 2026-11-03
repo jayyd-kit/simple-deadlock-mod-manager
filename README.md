@@ -56,10 +56,11 @@ Go to the [Releases Page](https://github.com/Gabri3445/simple-deadlock-mod-manag
 - [x] In-game Field Of View
 - [ ] Check for mod updates
 
-
 ## Not Planned (For now)
 
-- Automatic mod updates (Please see [Deadlock Mod Loader](https://github.com/Tylevo/DeadlockModManager) or [Deadlock Mod Manager](https://github.com/deadlock-mod-manager/deadlock-mod-manager) if you want your mods to update automatically)
+- Automatic mod updates (Please see [Deadlock Mod Loader](https://github.com/Tylevo/DeadlockModManager)
+  or [Deadlock Mod Manager](https://github.com/deadlock-mod-manager/deadlock-mod-manager) if you want your mods to
+  update automatically)
 
 ## Usage
 
@@ -70,14 +71,15 @@ Go to the [Releases Page](https://github.com/Gabri3445/simple-deadlock-mod-manag
 - Select the mods you wish to load and use the `>>` button to load them and the `<<` button to unload them
 - Click **Apply**
 
-**Attention: Almost everytime deadlock is updated, the gameinfo.gi file becomes invalid, make sure to validate it if needed**
+**Attention: Almost everytime deadlock is updated, the gameinfo.gi file becomes invalid, make sure to validate it if
+needed**
 
-This app is still early in development and while it should not mess anything up, I would recommend backing up your mods every so often. <br>
-If deadlock fails to start due to a corrupt gameinfo.gi file simply verify the integrity of the game files through steam. (Make sure to revalidate the file if you want mods to load)<br>
+This app is still early in development and while it should not mess anything up, I would recommend backing up your mods
+every so often. <br>
+If deadlock fails to start due to a corrupt gameinfo.gi file simply verify the integrity of the game files through
+steam. (Make sure to revalidate the file if you want mods to load)<br>
 If the mod manager fails to start, try deleting the config file located at `$HOME/.config/sdmm/config.json` or
 `C:/Users/<username>/AppData/Roaming/sdmm`
-
-
 
 ## Platform Support
 
@@ -85,6 +87,7 @@ If the mod manager fails to start, try deleting the config file located at `$HOM
 - **Windows:** Not tested, but should work.
 
 ## Tech stack
+
 - ![Tauri](https://img.shields.io/badge/Tauri-000000?logo=tauri)
 - ![Rust](https://img.shields.io/badge/Rust-000000?logo=rust)
 - ![React](https://img.shields.io/badge/React-000000?logo=react)
@@ -93,11 +96,12 @@ If the mod manager fails to start, try deleting the config file located at `$HOM
 - ![Mui](https://img.shields.io/badge/MaterialUI-000000?logo=mui)
 - ![Zustand](https://img.shields.io/badge/Zustand-000000)
 
-
 ## Building from source
+
 Please see https://v2.tauri.app/start/prerequisites/
 
 You might need to set `NO_STRIP=TRUE` if you're building an AppImage.
+
 ```shell
 git clone https://github.com/Gabri3445/simple-deadlock-mod-manager.git # Clone the repo
 cd simple-deadlock-mod-manager
