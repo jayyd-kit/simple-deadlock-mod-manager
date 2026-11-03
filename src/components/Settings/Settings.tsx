@@ -5,21 +5,20 @@ import {
     changePath,
     checkGameinfoValidity,
     getAutoDetectDeadlockPath,
-    getConfig, getFov,
-    makeConfigValid, setConfig, setFov
+    getConfig, getFov, makeConfigValid,
+    setConfig, setFov
 } from "../../generated";
 import {useModsStore} from "../../stores/useModsStore.ts";
 import {useErrorStore} from "../../stores/useErrorStore.ts";
-import {open} from "@tauri-apps/plugin-dialog";
 import {useSettingsStore} from "../../stores/useSettingsStore.ts";
-import {Numbers} from "@mui/icons-material";
+import ModManagerSettings from "./ModManagerSettings/ModManagerSettings.tsx";
 
 function Settings({isOpen, onClose}: { isOpen: boolean, onClose: () => void }) {
     const {setVisible, setError} = useErrorStore();
     const {setMods, getModsFromRust} = useModsStore();
     const {setFileNameAlwaysVisible, fileNameAlwaysVisible} = useSettingsStore();
-    const [path, setPath] = useState("");
     const [validConfig, setValidConfig] = useState<boolean>(false);
+    const [path, setPath] = useState("");
     const [loading, setLoading] = useState<boolean>(true);
     const [fovInputValue, setFovInputValue] = useState<number>(0);
     useEffect(() => {
@@ -63,36 +62,6 @@ function Settings({isOpen, onClose}: { isOpen: boolean, onClose: () => void }) {
         }
     }
 
-    const onAutoDetectClick = async () => {
-        try {
-            setPath(await getAutoDetectDeadlockPath());
-            await changePath({path: path});
-            setValidConfig(await checkGameinfoValidity());
-            setMods(await getModsFromRust());
-        } catch (e) {
-            setVisible(true);
-            setError(e as string);
-        }
-    }
-
-    const onBrowseClick = async () => {
-        try {
-            const dir = await open({
-                multiple: false,
-                directory: true,
-            })
-            if (dir) {
-                setPath(dir);
-                await changePath({path: dir})
-                setValidConfig(await checkGameinfoValidity())
-                setMods(await getModsFromRust());
-            }
-        } catch (e) {
-            setVisible(true);
-            setError(e as string);
-        }
-    }
-
     return (
         <Modal onClose={onClose} open={isOpen}>
             <div className="absolute top-1/2 left-1/2 -translate-1/2 w-2/4 h-2/3 bg-darkBlue rounded-md min-w-160 overflow-auto">
@@ -104,39 +73,9 @@ function Settings({isOpen, onClose}: { isOpen: boolean, onClose: () => void }) {
                             </div>
                             {!loading && (
                                 <>
+                                    <ModManagerSettings path={path} setPath={setPath} setValidConfig={setValidConfig} validConfig={validConfig} />
                                     <div className="text-white mt-8 text-xl font-extrabold border-b pb-2">
-                                        Mod Manager Settings
-                                    </div>
-                                    <div className="mt-6 text-xl">
-                                        <label className="block mb-2" htmlFor="pathInput">
-                                            Deadlock Path
-                                        </label>
-                                        <div className="flex gap-4">
-                                            <div className="bg-gray-800 grow mr-8"><input id="pathInput" value={path}
-                                                                                          onChange={(e) => {
-                                                                                              setPath(e.target.value)
-                                                                                          }}
-                                                                                          onKeyDown={async (e) => {
-                                                                                              if (e.key === "Enter") {
-                                                                                                  try {
-                                                                                                      await changePath({path: path});
-                                                                                                      setMods(await getModsFromRust());
-                                                                                                      setValidConfig(await checkGameinfoValidity());
-                                                                                                  } catch (e) {
-                                                                                                      setVisible(true);
-                                                                                                      setError(e as string);
-                                                                                                  }
-                                                                                              }
-                                                                                          }}
-                                                                                          className="text-lg m-1 w-full pr-2"/>
-                                            </div>
-                                            <Button onClick={onBrowseClick}>
-                                                Browse
-                                            </Button>
-                                            <Button onClick={onAutoDetectClick}>
-                                                Auto-Detect
-                                            </Button>
-                                        </div>
+                                        Deadlock Settings
                                     </div>
                                     <div className="mt-8 text-xl">
                                         <label className="block mb-2">gameinfo.gi file status</label>
@@ -162,20 +101,7 @@ function Settings({isOpen, onClose}: { isOpen: boolean, onClose: () => void }) {
                                             }}>Make valid</Button>
                                         </div>
                                     </div>
-                                    <div className="mt-8 text-xl flex gap-2 justify-between">
-                                        <div className="text-xl">Always display File name</div>
-                                        <input
-                                            checked={fileNameAlwaysVisible}
-                                            onChange={(e: ChangeEvent<HTMLInputElement>) => {
-                                                setFileNameAlwaysVisible(e.target.checked);
-                                            }}
-                                            className={"w-6 h-6 border border-default-medium rounded-xs bg-neutral-secondary-medium focus:ring-2 focus:ring-brand-soft"}
-                                            type={"checkbox"}/>
-                                    </div>
-                                    <div className="text-white mt-8 text-xl font-extrabold border-b pb-2">
-                                        Deadlock Settings
-                                    </div>
-                                    <div className="mt-6 text-xl flex gap-2 justify-between">
+                                    <div className="mt-6 text-xl flex flex-col justify-between">
                                         <div className="text-xl">Field Of View</div>
                                         <div className="flex gap-2">
                                             <input
@@ -186,7 +112,6 @@ function Settings({isOpen, onClose}: { isOpen: boolean, onClose: () => void }) {
                                                 className={"no-spinner bg-gray-800 border border-default-medium rounded-xs text-center w-20"}
                                                 type={"number"}/>
                                         </div>
-
                                     </div>
                                 </>
                             )}
