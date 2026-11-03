@@ -1,5 +1,5 @@
-import {ChangeEvent, useState} from "react";
-import {changePath, checkGameinfoValidity, getAutoDetectDeadlockPath, makeConfigValid} from "../../../generated";
+import {ChangeEvent} from "react";
+import {changePath, checkGameinfoValidity, getAutoDetectDeadlockPath} from "../../../generated";
 import {useModsStore} from "../../../stores/useModsStore.ts";
 import {useErrorStore} from "../../../stores/useErrorStore.ts";
 import {open} from "@tauri-apps/plugin-dialog";
