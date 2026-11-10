@@ -93,7 +93,7 @@ function AddModModal({modalOpen, setModalOpen}: { modalOpen: boolean, setModalOp
 
             if (files) {
                 setIsLoading(true);
-                await processFiles({
+                await processFiles({ //ignore the error, open can return a array of strings if set to multiple
                     files,
                     setFilePaths: fileSelectStore.setFilePaths,
                     setFileSelectModalOpen: fileSelectStore.setModalOpen
