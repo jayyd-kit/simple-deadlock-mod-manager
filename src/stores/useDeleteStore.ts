@@ -1,22 +1,22 @@
 import {create} from "zustand";
 
 interface DeleteStore {
-    fileName: string;
-    setFileName: (fileName: string) => void;
-    userName: string;
-    setUserName: (userName: string) => void;
+    fileNames: string[];
+    setFileName: (fileName: string[]) => void;
+    userNames: string[];
+    setUserName: (userName: string[]) => void;
     modalOpen: boolean;
     setModalOpen: (modalOpen: boolean) => void;
 }
 
 export const useDeleteStore = create<DeleteStore>((set) => ({
-    fileName: "",
+    fileNames: [],
     setFileName: (fileName) => {
-        set({fileName})
+        set({fileNames: fileName})
     },
-    userName: "",
+    userNames: [],
     setUserName: (userName) => {
-        set({userName})
+        set({userNames: userName})
     },
     modalOpen: false,
     setModalOpen: (modalOpen: boolean) => {

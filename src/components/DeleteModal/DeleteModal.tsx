@@ -7,12 +7,14 @@ import {deleteMod} from "../../generated";
 import {useModsStore} from "../../stores/useModsStore.ts";
 
 function DeleteModal() {
-    const {modalOpen, setModalOpen, fileName, userName} = useDeleteStore();
+    const {modalOpen, setModalOpen, fileNames, userNames} = useDeleteStore();
     const {setMods, getModsFromRust} = useModsStore()
     const {setError, setVisible} = useErrorStore();
     const onDeleteClick = async () => {
         try {
-            await deleteMod({fileName: fileName});
+            for (const fileName of fileNames) {
+                await deleteMod({fileName: fileName});
+            }
             setMods(await getModsFromRust());
         } catch (e) {
             setVisible(true);
@@ -28,7 +30,12 @@ function DeleteModal() {
                 <div className="flex flex-col justify-around h-full w-full">
                     <div className="text-center w-full">
                         <Textfit mode={"multi"}>
-                            Are you sure you want to delete <span className="font-bold">"{userName}"</span> ({fileName})?
+                            Are you sure you want to delete these mods?
+                            {fileNames.map((_, idx) => (
+                                <div>
+                                    - <span className="font-bold">"{userNames[idx]}"</span> ({fileNames[idx]})
+                                </div>
+                            ))}
                         </Textfit>
                     </div>
                     <div className="w-full flex justify-between px-4">
@@ -42,3 +49,4 @@ function DeleteModal() {
 }
 
 export default DeleteModal;
+

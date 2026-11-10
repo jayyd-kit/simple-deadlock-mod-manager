@@ -3,6 +3,9 @@ import {DeadlockMod} from "../../generated";
 import {SearchType, useSearchStore} from "../../stores/useSearchStore.ts";
 import {useEffect, useState} from "react";
 import Fuse from "fuse.js"
+import {useModsStore} from "../../stores/useModsStore.ts";
+import Button from "../Button/Button.tsx";
+import {useDeleteStore} from "../../stores/useDeleteStore.ts";
 
 export enum ModTabVariant {
     LoadedMods,
@@ -12,6 +15,9 @@ export enum ModTabVariant {
 function ModTab({variant, mods, loading}: { variant: ModTabVariant, mods: DeadlockMod[], loading: boolean }) {
     const {search, searchType} = useSearchStore();
     const [filteredMods, setFilteredMods] = useState<DeadlockMod[]>([]);
+    const {selectedMods, emptySelectedMods} = useModsStore();
+    const [showDeleteButton, setShowDeleteButton] = useState(false);
+    const {setModalOpen, setFileName, setUserName} = useDeleteStore();
 
 
     useEffect(() => {
@@ -43,6 +49,25 @@ function ModTab({variant, mods, loading}: { variant: ModTabVariant, mods: Deadlo
     }, [search]);
 
     useEffect(() => {
+        if (selectedMods.length == 0) {
+            setShowDeleteButton(false);
+            return;
+        }
+        if (selectedMods.every(mod => mod.variant == variant)) {
+            setShowDeleteButton(true);
+        } else {
+            setShowDeleteButton(false);
+        }
+    }, [selectedMods]);
+
+    const onDeleteMultipleMods = async () => {
+        setFileName(selectedMods.map(m => m.fileName))
+        setUserName(selectedMods.map(m => m.userName))
+        setModalOpen(true);
+        emptySelectedMods()
+    }
+
+    useEffect(() => {
         setFilteredMods(mods);
     }, [mods]);
 
@@ -63,7 +88,9 @@ function ModTab({variant, mods, loading}: { variant: ModTabVariant, mods: Deadlo
         <div className="flex-1 bg-cream p-3 first:pr-1.5 last:pl-1.5">
             <div className="border-3 h-full border-t-0 border-darker-cream">
                 <div
-                    className="bg-darker-cream text-white h-8.75 leading-8.75 pl-2">{getTabName(variant)} ({filteredMods.length})
+                    className="flex justify-between content-center bg-darker-cream text-white h-8.75 leading-8.75 pl-2">
+                    <span>{getTabName(variant)} ({filteredMods.length})</span>
+                    {showDeleteButton && (<span className={"text-sm mt-1 mr-1"}><Button onClick={onDeleteMultipleMods}>Delete Selected</Button></span>)}
                 </div>
                 <div className="px-2 pt-2 pb-2 grid grid-cols-3 gap-2">
                     {loading ? (

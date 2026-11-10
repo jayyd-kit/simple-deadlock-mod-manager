@@ -31,8 +31,8 @@ function ManageModModal() {
     }
 
     const onDeleteButtonClick = () => {
-        deleteStore.setFileName(fileName);
-        deleteStore.setUserName(userName);
+        deleteStore.setFileName([fileName]);
+        deleteStore.setUserName([userName]);
         deleteStore.setModalOpen(true);
         onCloseModal();
     }
