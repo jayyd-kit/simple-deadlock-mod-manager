@@ -78,15 +78,6 @@ pub fn run() {
                     config: Mutex::new(config),
                 });
             };
-
-            /*
-            let path = home_dir()
-                .ok_or("Unable to locate home directory")?
-                .join(CONFIG_PATH);
-            app.manage(ConfigState {
-                path,
-                config: Mutex::new(config),
-            });*/
             Ok(())
         })
         .plugin(tauri_plugin_dialog::init())

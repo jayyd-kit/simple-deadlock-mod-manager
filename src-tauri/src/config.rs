@@ -1,5 +1,5 @@
 use crate::types::{DeadlockMod, Preset};
-use crate::utils::{generate_uuid, is_mod_loaded};
+use crate::utils::generate_uuid;
 use directories::ProjectDirs;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -105,12 +105,13 @@ pub fn load_config() -> Result<ModManagerConfigV2, Box<dyn std::error::Error>> {
             "{}",
             format!("Cache dir located at {:?}", cache_path.to_string_lossy())
         );
-        if cache_path.exists() {
+        //TODO only remove downloads and unzip cache folders
+        /*if cache_path.exists() {
             std::fs::remove_dir_all(&cache_path).map_err(|_| {
                 log::error!("Could not remove cache dir");
                 "Could not remove cache dir"
             })?;
-        }
+        }*/
         std::fs::create_dir_all(&cache_path).map_err(|_| {
             log::error!("Could not create cache dir");
             "Could not create cache dir"

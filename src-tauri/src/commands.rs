@@ -475,6 +475,7 @@ pub async fn process_compressed_file(
     state: State<'_, ConfigState>,
 ) -> Result<Vec<String>, String> {
     let cache_dir = state.cache_path.clone();
+    let unzip_cache_dir = cache_dir.join("unzip");
 
     tauri::async_runtime::spawn_blocking(move || {
         let mut result: Vec<String> = Vec::new();
@@ -489,7 +490,7 @@ pub async fn process_compressed_file(
                 let zip_file = std::fs::File::open(&f_path).map_err(|e| e.to_string())?;
                 let mut archive = zip::ZipArchive::new(zip_file).map_err(|e| e.to_string())?;
 
-                let extract_path = cache_dir.join(f_path.file_prefix().unwrap());
+                let extract_path = unzip_cache_dir.join(f_path.file_prefix().unwrap());
 
                 if extract_path.exists() {
                     std::fs::remove_dir_all(&extract_path).map_err(|e| e.to_string())?;
@@ -505,7 +506,7 @@ pub async fn process_compressed_file(
             }
 
             CompressedFileType::Rar => {
-                let extract_path = cache_dir.join(f_path.file_prefix().unwrap());
+                let extract_path = unzip_cache_dir.join(f_path.file_prefix().unwrap());
 
                 let mut archive = Archive::new(&f_path)
                     .open_for_processing()
@@ -534,7 +535,7 @@ pub async fn process_compressed_file(
             }
 
             CompressedFileType::SevenZ => {
-                let extract_path = cache_dir.join(f_path.file_prefix().unwrap());
+                let extract_path = unzip_cache_dir.join(f_path.file_prefix().unwrap());
 
                 if extract_path.exists() {
                     std::fs::remove_dir_all(&extract_path).map_err(|e| e.to_string())?;
@@ -598,7 +599,8 @@ pub async fn download_mod_command(
         .ok_or(format!("Invalid URL: {}", parsed_url))?
         .collect::<Vec<_>>();
     let cache_dir = &state.cache_path;
-    std::fs::create_dir_all(cache_dir).map_err(|e| e.to_string())?;
+    let download_cache_dir = &cache_dir.join("downloads");
+    std::fs::create_dir_all(download_cache_dir).map_err(|e| e.to_string())?;
     match url_segments.as_slice() {
         ["dl", download_id] => {
             let id = download_id
@@ -625,7 +627,7 @@ pub async fn download_mod_command(
             let bytes = download_mod(&download_url, app.clone())
                 .await
                 .map_err(|e| e.to_string())?;
-            let path = cache_dir.join(filename);
+            let path = download_cache_dir.join(filename);
             if path.exists() {
                 std::fs::remove_file(&path).map_err(|e| e.to_string())?;
             }
@@ -668,7 +670,7 @@ pub async fn download_mod_command(
             .map_err(|e| e.to_string())?;
             let mut paths = Vec::new();
             for newest_file in newest_files {
-                let path = cache_dir.join(&newest_file.file);
+                let path = download_cache_dir.join(&newest_file.file);
                 if path.exists() {
                     std::fs::remove_file(&path).map_err(|e| e.to_string())?;
                 }
