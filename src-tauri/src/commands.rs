@@ -581,73 +581,112 @@ pub async fn download_mod_command(
     app: AppHandle,
 ) -> Result<Vec<String>, String> {
     log::info!("Downloading mod {}", url);
-    let cache_dir = &state.cache_path;
-    if let Some(id) = Url::parse(&url)
-        .map_err(|e| e.to_string())?
+    let parsed_url = Url::parse(&url).map_err(|e| e.to_string())?;
+    let host = parsed_url.host_str().ok_or("No hostname")?;
+
+    //guards to check if url is a valid gamebanana url
+    if !(host == "gamebanana.com") {
+        return Err(format!("Invalid URL: {}", parsed_url));
+    };
+    if parsed_url.scheme() != "https" {
+        return Err(format!("Invalid URL: {}", parsed_url));
+    };
+
+    // this returns ["dl|mods", id]
+    let url_segments = parsed_url
         .path_segments()
-        .and_then(|segments| segments.last())
-    {
-        let files = get_mod_files(id).await.map_err(|e| e.to_string())?;
-        let mut values = files.files.iter().map(|x| x.1).collect::<Vec<&FileEntry>>();
-        values.sort_by_key(|x1| x1.date_added);
-        values.reverse();
-        let mut newest_files: Vec<&FileEntry> = Vec::new();
-        for i in 0..values.len() {
-            if i == 0 {
-                newest_files.push(values[i]);
-                continue;
-            }
-            if values[i - 1].version == values[i].version {
-                newest_files.push(values[i]);
-                continue;
-            } else {
-                break;
-            }
-        }
-        let mut paths: Vec<String> = Vec::new();
-        let file_ids: Result<Vec<u64>, _> = newest_files
-            .iter()
-            .map(|x| x.id_row.parse::<u64>())
-            .collect();
-        app.emit(
-            "download-start",
-            DownloadStart {
-                number_of_files: newest_files.len() as u64,
-                file_ids: file_ids.map_err(|e| e.to_string())?,
-            },
-        )
-        .map_err(|e| e.to_string())?;
-        for newest_file in newest_files {
-            let path = cache_dir.join(newest_file.file.clone());
-            if path.exists() {
-                std::fs::remove_file(&path).map_err(|e| e.to_string())?;
-            }
-            std::fs::write(
-                &path,
-                download_mod(&*newest_file.download_url, app.clone())
-                    .await
-                    .map_err(|e| e.to_string())?,
-            )
-            .map_err(|e| e.to_string())?;
+        .ok_or(format!("Invalid URL: {}", parsed_url))?
+        .collect::<Vec<_>>();
+    let cache_dir = &state.cache_path;
+    std::fs::create_dir_all(cache_dir).map_err(|e| e.to_string())?;
+    match url_segments.as_slice() {
+        ["dl", download_id] => {
+            let id = download_id
+                .parse::<u64>()
+                .map_err(|_| "Invalid download ID")?;
+            let download_url = format!("https://gamebanana.com/dl/{}", id);
             app.emit(
-                "download-end",
-                DownloadEnd {
-                    id: newest_file
-                        .id_row
-                        .parse::<u64>()
-                        .map_err(|e| e.to_string())?,
+                "download-start",
+                DownloadStart {
+                    number_of_files: 1,
+                    file_ids: vec![id],
                 },
             )
             .map_err(|e| e.to_string())?;
-            paths.push(path.to_string_lossy().to_string());
+
+            //gamebanana /dl/id is a redirect, we can get the actual file name like this
+            let response = reqwest::get(url).await.map_err(|e| e.to_string())?;
+            let filename = response
+                .url()
+                .path_segments()
+                .and_then(|segments| segments.last())
+                .ok_or("No filename found")?;
+
+            let bytes = download_mod(&download_url, app.clone())
+                .await
+                .map_err(|e| e.to_string())?;
+            let path = cache_dir.join(filename);
+            if path.exists() {
+                std::fs::remove_file(&path).map_err(|e| e.to_string())?;
+            }
+            std::fs::write(&path, bytes).map_err(|e| e.to_string())?;
+            app.emit("download-end", DownloadEnd { id })
+                .map_err(|e| e.to_string())?;
+            Ok(vec![path.to_string_lossy().to_string()])
         }
-        log::info!(
-            "Download mod with files at {}",
-            serde_json::to_string_pretty(&paths).map_err(|e| e.to_string())?
-        );
-        Ok(paths)
-    } else {
-        Err(format!("Invalid URL: {}", url))
+        ["mods", mod_id] => {
+            let files = get_mod_files(mod_id).await?;
+
+            //x.0 is the json key, while x.1 is the value
+            let mut values = files.files.iter().map(|x| x.1).collect::<Vec<&FileEntry>>();
+            values.sort_by_key(|x| x.date_added);
+            values.reverse();
+            let mut newest_files: Vec<&FileEntry> = Vec::new();
+            // we only care about the newest files
+            for i in 0..values.len() {
+                //only add the files with the newest version
+                if i == 0 || values[i - 1].version == values[i].version {
+                    newest_files.push(values[i]);
+                } else {
+                    break;
+                }
+            }
+            if newest_files.is_empty() {
+                return Err("This mod has no downloadable files".into());
+            }
+            let file_ids: Result<Vec<u64>, _> = newest_files
+                .iter()
+                .map(|x| x.id_row.parse::<u64>())
+                .collect();
+            app.emit(
+                "download-start",
+                DownloadStart {
+                    number_of_files: newest_files.len() as u64,
+                    file_ids: file_ids.map_err(|e| e.to_string())?,
+                },
+            )
+            .map_err(|e| e.to_string())?;
+            let mut paths = Vec::new();
+            for newest_file in newest_files {
+                let path = cache_dir.join(&newest_file.file);
+                if path.exists() {
+                    std::fs::remove_file(&path).map_err(|e| e.to_string())?;
+                }
+                let bytes = download_mod(&newest_file.download_url, app.clone())
+                    .await
+                    .map_err(|e| e.to_string())?;
+                std::fs::write(&path, bytes).map_err(|e| e.to_string())?;
+                let id = newest_file
+                    .id_row
+                    .parse::<u64>()
+                    .map_err(|e| e.to_string())?;
+                app.emit("download-end", DownloadEnd { id })
+                    .map_err(|e| e.to_string())?;
+                paths.push(path.to_string_lossy().to_string());
+            }
+            Ok(paths)
+        }
+        _ => Err(format!("Invalid URL: {}", url)),
     }
 }
 
