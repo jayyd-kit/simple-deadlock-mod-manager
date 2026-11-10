@@ -117,7 +117,7 @@ function AddModModal({modalOpen, setModalOpen}: { modalOpen: boolean, setModalOp
                 await processFiles({
                     files: paths,
                     setFilePaths: fileSelectStore.setFilePaths,
-                    setFileSelectModalOpen: setModalOpen
+                    setFileSelectModalOpen: fileSelectStore.setModalOpen
                 });
                 setMods(await getModsFromRust());
                 setIsLoading(false);
