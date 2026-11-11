@@ -1,10 +1,10 @@
-use crate::config::{save_config, ConfigState, ModManagerConfigV2};
+use crate::config::{save_config, ConfigState, ModManagerConfigV2, SortMethod};
 use crate::gamebanana_api::api::{download_mod, get_mod_files};
 use crate::gamebanana_api::types::FileEntry;
 use crate::types::{CompressedFileType, DeadlockMod, ModOperation, Mods, Preset};
 use crate::utils::{
     aspect_ratio_to_fov, fov_to_aspect_ratio, generate_uuid, is_deadlock_path_valid, is_mod_loaded,
-    list_vpk_files, process_mod_directory, update_config_mod_file_name,
+    list_vpk_files, process_mod_directory, sort_mods, update_config_mod_file_name, VALID_MOD_REGEX,
 };
 use rand::RngExt;
 use regex::Regex;
@@ -107,7 +107,7 @@ pub fn list_mods(state: State<ConfigState>) -> Result<Mods, String> {
             .join("addons");
         std::fs::create_dir_all(&mod_path).map_err(|e| e.to_string())?;
 
-        let mods = process_mod_directory(&mod_path, &mut config)?;
+        let mut mods = process_mod_directory(&mod_path, &mut config)?;
         // this removes mods which have been deleted from the config
         /*for file_name in config.mod_names.clone().keys().clone() {
             let mut present = false;
@@ -153,6 +153,8 @@ pub fn list_mods(state: State<ConfigState>) -> Result<Mods, String> {
                 }
             }
         }
+        sort_mods(&mut mods.loaded_mods, config.settings.sort_method.clone());
+        sort_mods(&mut mods.unloaded_mods, config.settings.sort_method.clone());
         result = mods;
     }
     save_config(&state).map_err(|e| e.to_string())?;

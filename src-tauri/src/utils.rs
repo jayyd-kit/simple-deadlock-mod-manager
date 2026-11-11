@@ -1,8 +1,9 @@
-use crate::config::ModManagerConfigV2;
+use crate::config::{save_config, ConfigState, ModManagerConfigV2, SortMethod};
 use crate::types::{DeadlockMod, ModOperation, Mods};
 use regex::Regex;
 use std::path::{Path, PathBuf};
 use std::sync::MutexGuard;
+use tauri::State;
 use uuid::Uuid;
 
 /// Updates the file name in the config when it is changed (load/unload)
@@ -130,4 +131,26 @@ pub fn aspect_ratio_to_fov(aspect_ratio: f32) -> i32 {
 
 pub fn fov_to_aspect_ratio(fov: i32) -> f32 {
     (fov as f32 - 31.9058) / 27.1463
+}
+
+pub fn sort_mods(mods: &mut Vec<DeadlockMod>, sort_mode: SortMethod) {
+    {
+        println!("Sorting mods: {:?}", &mods);
+        match sort_mode {
+            SortMethod::None => return (),
+            SortMethod::PakNumber => {
+                let sort_regex = Regex::new(r"\d*_?pak(\d\d)_dir\.vpk$").unwrap();
+                mods.sort_by_cached_key(|m| {
+                    sort_regex.captures(&m.file_name).unwrap()[1]
+                        .parse::<i32>()
+                        .unwrap()
+                })
+            }
+            SortMethod::UserName => {
+                mods.sort_by_cached_key(|m| m.user_name.to_lowercase());
+            }
+        }
+        println!("Sorted mods: {:?}", &mods);
+    }
+    ()
 }

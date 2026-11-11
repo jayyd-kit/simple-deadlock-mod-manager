@@ -67,6 +67,7 @@ function ModTab({variant, mods, loading}: { variant: ModTabVariant, mods: Deadlo
         emptySelectedMods()
     }
 
+
     useEffect(() => {
         setFilteredMods(mods);
     }, [mods]);

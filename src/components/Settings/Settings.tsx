@@ -19,7 +19,7 @@ import DeadlockSettings from "./DeadlockSettings/DeadlockSettings.tsx";
 function Settings({isOpen, onClose}: { isOpen: boolean, onClose: () => void }) {
     const {setVisible, setError} = useErrorStore();
     const {setMods, getModsFromRust} = useModsStore();
-    const {setFileNameAlwaysVisible, fileNameAlwaysVisible} = useSettingsStore();
+    const {setFileNameAlwaysVisible, fileNameAlwaysVisible, sortMethod, setSortMethod} = useSettingsStore();
     const [validConfig, setValidConfig] = useState<boolean>(false);
     const [path, setPath] = useState("");
     const [loading, setLoading] = useState<boolean>(true);
@@ -40,6 +40,7 @@ function Settings({isOpen, onClose}: { isOpen: boolean, onClose: () => void }) {
                 setPath(config.deadlock_path);
             }
             setFileNameAlwaysVisible(config.settings.always_show_file_names)
+            setSortMethod(config.settings.sort_method)
             setValidConfig(await checkGameinfoValidity())
             setFovInputValue(await getFov());
         } catch (e) {
@@ -53,11 +54,12 @@ function Settings({isOpen, onClose}: { isOpen: boolean, onClose: () => void }) {
     const onApply = async () => {
         try {
             await changePath({path: path});
-            setMods(await getModsFromRust());
             let config = await getConfig();
             config.settings.always_show_file_names = fileNameAlwaysVisible;
+            config.settings.sort_method = sortMethod;
             await setConfig({newConfig: config});
             await setFov({newFov: fovInputValue});
+            setMods(await getModsFromRust());
             onClose();
         } catch (e) {
             setVisible(true);

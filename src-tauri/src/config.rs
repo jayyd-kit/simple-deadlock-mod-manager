@@ -36,6 +36,7 @@ impl Default for ModManagerConfigV2 {
             presets: Vec::default(),
             settings: Settings {
                 always_show_file_names: false,
+                sort_method: SortMethod::None,
             },
             version: "2".to_string(),
         }
@@ -44,7 +45,17 @@ impl Default for ModManagerConfigV2 {
 
 #[derive(Default, Deserialize, Serialize, Clone)]
 pub struct Settings {
-    always_show_file_names: bool,
+    pub always_show_file_names: bool,
+    #[serde(default)]
+    pub sort_method: SortMethod,
+}
+
+#[derive(Clone, Deserialize, Serialize, Debug, Default)]
+pub enum SortMethod {
+    #[default]
+    None,
+    PakNumber,
+    UserName,
 }
 
 fn v1_version_default() -> String {
@@ -175,6 +186,7 @@ pub fn load_config() -> Result<ModManagerConfigV2, Box<dyn std::error::Error>> {
                 deadlock_path: "".to_string(),
                 settings: Settings {
                     always_show_file_names: false,
+                    sort_method: SortMethod::None,
                 },
             };
             save_config(&ConfigState {
