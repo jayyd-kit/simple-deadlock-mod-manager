@@ -103,6 +103,8 @@ pub fn run() {
             commands::delete_preset,
             commands::get_fov,
             commands::set_fov,
+            commands::download_gameconfigs,
+            commands::get_gameconfigs
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

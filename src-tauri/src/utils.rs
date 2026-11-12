@@ -135,7 +135,6 @@ pub fn fov_to_aspect_ratio(fov: i32) -> f32 {
 
 pub fn sort_mods(mods: &mut Vec<DeadlockMod>, sort_mode: SortMethod) {
     {
-        println!("Sorting mods: {:?}", &mods);
         match sort_mode {
             SortMethod::None => return (),
             SortMethod::PakNumber => {
@@ -150,7 +149,6 @@ pub fn sort_mods(mods: &mut Vec<DeadlockMod>, sort_mode: SortMethod) {
                 mods.sort_by_cached_key(|m| m.user_name.to_lowercase());
             }
         }
-        println!("Sorted mods: {:?}", &mods);
     }
     ()
 }

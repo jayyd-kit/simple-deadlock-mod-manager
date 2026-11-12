@@ -6,11 +6,13 @@ use crate::utils::{
     aspect_ratio_to_fov, fov_to_aspect_ratio, generate_uuid, is_deadlock_path_valid, is_mod_loaded,
     list_vpk_files, process_mod_directory, sort_mods, update_config_mod_file_name, VALID_MOD_REGEX,
 };
+use futures_util::TryFutureExt;
 use rand::RngExt;
 use regex::Regex;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use std::fs::DirEntry;
 use std::path::PathBuf;
+use std::string::ToString;
 use tauri::{AppHandle, Emitter, State};
 use unrar::Archive;
 use url::Url;
@@ -900,4 +902,95 @@ pub async fn set_fov(state: State<'_, ConfigState>, new_fov: i32) -> Result<(), 
         .to_string();
     std::fs::write(gameinfo_path, result).map_err(|e| e.to_string())?;
     Ok(())
+}
+
+struct GameconfigDownloadInfo {
+    url: &'static str,
+    name: &'static str,
+}
+
+static GAME_CONFIG_DOWNLOAD_INFO: &[GameconfigDownloadInfo] = &[
+    GameconfigDownloadInfo {
+        name: "Eskay's Config",
+        url: "https://github.com/Sqooky/OptimizationLock/raw/refs/heads/main/Eskay's%20config/gameinfo.gi",
+    },
+    GameconfigDownloadInfo {
+        name: "Piggy's config",
+        url: "https://github.com/Sqooky/OptimizationLock/raw/refs/heads/main/Piggy's%20config/gameinfo.gi",
+    },
+    GameconfigDownloadInfo {
+        name: "boot's maximum fps config",
+        url: "https://github.com/Sqooky/OptimizationLock/raw/refs/heads/main/boot's%20maxium%20fps%20config/gameinfo.gi",
+    },
+    GameconfigDownloadInfo {
+        name: "kaizuchanerus minimum spec",
+        url: "https://github.com/Sqooky/OptimizationLock/raw/refs/heads/main/kaizuchanerus%20minimum%20spec/gameinfo.gi",
+    },
+    GameconfigDownloadInfo {
+        name: "kaizuchanerus minimum spec (extremely low)",
+        url: "https://github.com/Sqooky/OptimizationLock/raw/refs/heads/main/kaizuchanerus%20minimum%20spec/gameinfo-EXTREME-LOW.gi",
+    },
+    GameconfigDownloadInfo {
+        name: "maximum fps",
+        url: "https://github.com/Sqooky/OptimizationLock/raw/refs/heads/main/maximumfps%20or%20minimum%20spec%20config%20and%20resources%20here/gameinfo.gi",
+    },
+    GameconfigDownloadInfo {
+        name: "Clean Gameconfig",
+        url: "https://github.com/Sqooky/OptimizationLock/raw/refs/heads/main/clean%20gameinfo.gi/gameinfo.gi",
+    }
+];
+
+#[tauri::command]
+pub async fn download_gameconfigs(state: State<'_, ConfigState>) -> Result<Vec<String>, String> {
+    let cache_dir = state.cache_path.clone();
+    let gameconfigs_cache_dir = cache_dir.join("gameconfigs");
+    std::fs::create_dir_all(gameconfigs_cache_dir.clone()).map_err(|e| e.to_string())?;
+    let client = reqwest::Client::new();
+    let mut paths: Vec<String> = Vec::new();
+    for gameconfig in GAME_CONFIG_DOWNLOAD_INFO {
+        let response = client
+            .get(gameconfig.url)
+            .send()
+            .await
+            .map_err(|e| e.to_string())?;
+        let bytes = response.bytes().await.map_err(|e| e.to_string())?;
+        std::fs::create_dir_all(gameconfigs_cache_dir.join(gameconfig.name))
+            .map_err(|e| e.to_string())?;
+        let download_path =
+            gameconfigs_cache_dir.join(gameconfig.name.to_owned() + "/gameconfig.gi");
+        paths.push(download_path.to_str().unwrap().to_string());
+        tokio::fs::write(&download_path, bytes)
+            .await
+            .map_err(|e| e.to_string())?;
+    }
+    Ok(paths)
+}
+
+#[derive(Deserialize, Serialize, Debug)]
+pub struct GameConfig {
+    name: String,
+    path: String,
+}
+
+#[tauri::command]
+pub async fn get_gameconfigs(state: State<'_, ConfigState>) -> Result<Vec<GameConfig>, String> {
+    let cache_dir = state.cache_path.clone();
+    let gameconfigs_cache_dir = cache_dir.join("gameconfigs");
+    let mut game_configs: Vec<GameConfig> = Vec::new();
+    for entry_1 in std::fs::read_dir(gameconfigs_cache_dir.clone()).map_err(|e| e.to_string())? {
+        let entry_1 = entry_1.map_err(|e| e.to_string())?;
+        for entry_2 in std::fs::read_dir(gameconfigs_cache_dir.join(entry_1.file_name()))
+            .map_err(|e| e.to_string())?
+        {
+            let entry_2 = entry_2.map_err(|e| e.to_string())?;
+            game_configs.push(GameConfig {
+                name: entry_1
+                    .file_name()
+                    .into_string()
+                    .map_err(|_| "Error while reading gameconfigs")?,
+                path: entry_2.path().to_string_lossy().to_string(),
+            });
+        }
+    }
+    Ok(game_configs)
 }
