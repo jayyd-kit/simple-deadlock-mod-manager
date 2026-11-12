@@ -67,7 +67,7 @@ function CustomGameConfigs({gameConfigs, setGameConfigs}: {
                 </div>
             </div>
             <div className="flex w-full justify-between">
-                <select disabled={loading} onChange={onSelectChange} className="w-60 text-black text-sm">
+                <select disabled={loading} onChange={onSelectChange} className="w-60 text-black text-sm bg-white">
                     {gameConfigs.map((gameConfig: GameConfig) => (
                         <option value={gameConfig.name}>{gameConfig.name}</option>
                     ))}
