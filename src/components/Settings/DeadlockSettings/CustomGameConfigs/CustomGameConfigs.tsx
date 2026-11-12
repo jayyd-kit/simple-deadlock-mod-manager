@@ -1,23 +1,25 @@
-import {useEffect} from "react";
+import {ChangeEvent, Dispatch, useEffect} from "react";
 import {useErrorStore} from "../../../../stores/useErrorStore.ts";
-import {downloadGameconfigs, GameConfig, getGameconfigs} from "../../../../generated";
+import {GameConfig, getGameconfigs} from "../../../../generated";
 import Button from "../../../Button/Button.tsx";
+import {useSettingsStore} from "../../../../stores/useSettingsStore.ts";
 
 function CustomGameConfigs({gameConfigs, setGameConfigs}: {
     gameConfigs: GameConfig[],
-    setGameConfigs: (gameConfig) => void
+    setGameConfigs: Dispatch<GameConfig[]>
 }) {
-
+    const {setChosenGameConfig} = useSettingsStore();
     const {setVisible, setError} = useErrorStore();
 
 
     const getGameConfigsEffect = async () => {
         try {
-            setGameConfigs(await getGameconfigs());
-            setGameConfigs(prevState => [{path: "", name: "Default"}, ...prevState])
+            let gameConfigs = await getGameconfigs();
+            gameConfigs = [{path: "", name: "Default"}, ...gameConfigs]
+            setGameConfigs(gameConfigs);
         } catch (e) {
             setVisible(true);
-            setError(e);
+            setError(e as string);
         }
     }
 
@@ -27,11 +29,22 @@ function CustomGameConfigs({gameConfigs, setGameConfigs}: {
 
     const onDownloadClick = async () => {
         try {
-            setGameConfigs(await downloadGameconfigs())
-            setGameConfigs(prevState => [{path: "", name: "Default"}, ...prevState])
+            let gameConfigs = await getGameconfigs();
+            gameConfigs = [{path: "", name: "Default"}, ...gameConfigs]
+            setGameConfigs(gameConfigs);
         } catch (e) {
             setVisible(true);
-            setError(e);
+            setError(e as string);
+        }
+    }
+
+    const onSelectChange = async (e: ChangeEvent<HTMLSelectElement>) => {
+        const chosenGameConfig = gameConfigs.find((g) => g.name === e.target.value);
+        if (chosenGameConfig) {
+            setChosenGameConfig(chosenGameConfig);
+        } else {
+            setVisible(true);
+            setError("Invalid Choice")
         }
     }
 
@@ -39,9 +52,9 @@ function CustomGameConfigs({gameConfigs, setGameConfigs}: {
         <div className="mt-8 text-xl">
             <label className="block mb-2">Custom Game Configs</label>
             <div className="flex w-full justify-between">
-                <select className="w-60 text-black">
+                <select onChange={onSelectChange} className="w-60 text-black text-sm">
                     {gameConfigs.map((gameConfig: GameConfig) => (
-                        <option>{gameConfig.name}</option>
+                        <option value={gameConfig.name}>{gameConfig.name}</option>
                     ))}
                 </select>
                 <Button onClick={onDownloadClick}>Download GameConfigs</Button>

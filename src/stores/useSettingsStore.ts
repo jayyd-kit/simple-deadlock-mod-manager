@@ -1,11 +1,13 @@
 import {create} from "zustand";
-import {SortMethod} from "../generated";
+import {GameConfig, SortMethod} from "../generated";
 
 interface SettingStore {
     fileNameAlwaysVisible: boolean;
     setFileNameAlwaysVisible: (fileNameAlwaysVisible: boolean) => void;
     sortMethod: SortMethod;
     setSortMethod: (sortMethod: SortMethod) => void;
+    chosenGameConfig: GameConfig;
+    setChosenGameConfig: (chosenGameConfig: GameConfig) => void;
 }
 
 export const useSettingsStore = create<SettingStore>((set) => ({
@@ -16,5 +18,9 @@ export const useSettingsStore = create<SettingStore>((set) => ({
     sortMethod: "None",
     setSortMethod: (sortMethod: SortMethod) => {
         set({sortMethod});
+    },
+    chosenGameConfig: {name: "Default", path: ""},
+    setChosenGameConfig: (chosenGameConfig: GameConfig) => {
+        set({chosenGameConfig});
     }
 }))

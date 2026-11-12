@@ -946,6 +946,7 @@ pub async fn download_gameconfigs(
 ) -> Result<Vec<GameConfig>, String> {
     let cache_dir = state.cache_path.clone();
     let gameconfigs_cache_dir = cache_dir.join("gameconfigs");
+    std::fs::remove_dir_all(gameconfigs_cache_dir.clone()).map_err(|e| e.to_string())?;
     std::fs::create_dir_all(gameconfigs_cache_dir.clone()).map_err(|e| e.to_string())?;
     let client = reqwest::Client::new();
     let mut game_configs: Vec<GameConfig> = Vec::new();
@@ -987,6 +988,9 @@ pub async fn get_gameconfigs(state: State<'_, ConfigState>) -> Result<Vec<GameCo
     let mut game_configs: Vec<GameConfig> = Vec::new();
     for entry_1 in std::fs::read_dir(gameconfigs_cache_dir.clone()).map_err(|e| e.to_string())? {
         let entry_1 = entry_1.map_err(|e| e.to_string())?;
+        if entry_1.file_name() == "backups" {
+            continue;
+        }
         for entry_2 in std::fs::read_dir(gameconfigs_cache_dir.join(entry_1.file_name()))
             .map_err(|e| e.to_string())?
         {
@@ -1001,4 +1005,33 @@ pub async fn get_gameconfigs(state: State<'_, ConfigState>) -> Result<Vec<GameCo
         }
     }
     Ok(game_configs)
+}
+
+#[tauri::command]
+pub async fn set_gameconfig(
+    state: State<'_, ConfigState>,
+    new_game_config: GameConfig,
+) -> Result<(), String> {
+    let config = state.config.lock().map_err(|e| e.to_string())?;
+    let cache_path = state.cache_path.clone();
+    let gameconfigs_backup_cache_dir = cache_path.join("gameconfigs").join("backups");
+    if new_game_config.name == "Default" || new_game_config.path == "" {
+        return Ok(());
+    }
+    let new_game_config_path = PathBuf::from(&new_game_config.path);
+    if !new_game_config_path.exists() {
+        return Err("gameconfig path doesn't exist".to_string());
+    }
+    let old_game_config_path = PathBuf::from(config.deadlock_path.clone())
+        .join("game")
+        .join("citadel")
+        .join("gameinfo.gi");
+    std::fs::create_dir_all(&gameconfigs_backup_cache_dir).map_err(|e| e.to_string())?;
+    std::fs::copy(
+        &old_game_config_path,
+        gameconfigs_backup_cache_dir.join(generate_uuid().to_string() + "-backup.gi"),
+    )
+    .map_err(|e| e.to_string())?;
+    std::fs::copy(new_game_config.path, old_game_config_path).map_err(|e| e.to_string())?;
+    Ok(())
 }

@@ -9,7 +9,8 @@ import {
     getConfig,
     getFov,
     setConfig,
-    setFov
+    setFov,
+    setGameconfig
 } from "../../generated";
 import {useModsStore} from "../../stores/useModsStore.ts";
 import {useErrorStore} from "../../stores/useErrorStore.ts";
@@ -20,7 +21,13 @@ import DeadlockSettings from "./DeadlockSettings/DeadlockSettings.tsx";
 function Settings({isOpen, onClose}: { isOpen: boolean, onClose: () => void }) {
     const {setVisible, setError} = useErrorStore();
     const {setMods, getModsFromRust} = useModsStore();
-    const {setFileNameAlwaysVisible, fileNameAlwaysVisible, sortMethod, setSortMethod} = useSettingsStore();
+    const {
+        setFileNameAlwaysVisible,
+        fileNameAlwaysVisible,
+        sortMethod,
+        setSortMethod,
+        chosenGameConfig
+    } = useSettingsStore();
     const [validConfig, setValidConfig] = useState<boolean>(false);
     const [path, setPath] = useState("");
     const [loading, setLoading] = useState<boolean>(true);
@@ -59,6 +66,7 @@ function Settings({isOpen, onClose}: { isOpen: boolean, onClose: () => void }) {
             let config = await getConfig();
             config.settings.always_show_file_names = fileNameAlwaysVisible;
             config.settings.sort_method = sortMethod;
+            await setGameconfig({newGameConfig: chosenGameConfig})
             await setConfig({newConfig: config});
             await setFov({newFov: fovInputValue});
             setMods(await getModsFromRust());

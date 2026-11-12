@@ -1,7 +1,7 @@
 import Button from "../../Button/Button.tsx";
 import {checkGameinfoValidity, GameConfig, makeConfigValid} from "../../../generated";
 import {useErrorStore} from "../../../stores/useErrorStore.ts";
-import {ChangeEvent, useState} from "react";
+import {ChangeEvent, Dispatch, useState} from "react";
 import {KeyboardArrowDown, KeyboardArrowRight} from "@mui/icons-material";
 import CustomGameConfigs from "./CustomGameConfigs/CustomGameConfigs.tsx";
 
@@ -11,7 +11,7 @@ function DeadlockSettings({validConfig, setValidConfig, fovInputValue, setFovInp
     fovInputValue: number,
     setFovInputValue: (fovInputValue: number) => void,
     gameConfigs: GameConfig[],
-    setGameConfigs: (gameConfigs) => void,
+    setGameConfigs: Dispatch<GameConfig[]>
 }) {
     const {setVisible, setError} = useErrorStore();
 
