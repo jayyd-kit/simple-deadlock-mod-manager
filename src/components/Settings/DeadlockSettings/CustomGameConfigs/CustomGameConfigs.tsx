@@ -3,6 +3,7 @@ import {useErrorStore} from "../../../../stores/useErrorStore.ts";
 import {downloadGameconfigs, GameConfig, getGameconfigs} from "../../../../generated";
 import Button from "../../../Button/Button.tsx";
 import {useSettingsStore} from "../../../../stores/useSettingsStore.ts";
+import {openUrl} from "@tauri-apps/plugin-opener";
 
 function CustomGameConfigs({gameConfigs, setGameConfigs}: {
     gameConfigs: GameConfig[],
@@ -53,15 +54,25 @@ function CustomGameConfigs({gameConfigs, setGameConfigs}: {
         }
     }
 
+    const onSourceClick = async () => {
+        await openUrl("https://github.com/Sqooky/OptimizationLock")
+    }
+
     return (
-        <div className="mt-8 text-xl">
-            <label className="block mb-2">Custom Game Configs</label>
+        <div className="mt-8">
+            <div className={"flex justify-between mb-2"}>
+                <label className="block mb-2 text-xl">Custom Game Configs</label>
+                <div className="">
+                    <Button onClick={onSourceClick}><span>Source</span></Button>
+                </div>
+            </div>
             <div className="flex w-full justify-between">
                 <select disabled={loading} onChange={onSelectChange} className="w-60 text-black text-sm">
                     {gameConfigs.map((gameConfig: GameConfig) => (
                         <option value={gameConfig.name}>{gameConfig.name}</option>
                     ))}
                 </select>
+
                 <Button onClick={onDownloadClick}>Download GameConfigs</Button>
             </div>
         </div>
