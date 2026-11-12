@@ -1,12 +1,11 @@
-use crate::config::{save_config, ConfigState, ModManagerConfigV2, SortMethod};
+use crate::config::{save_config, ConfigState, ModManagerConfigV2};
 use crate::gamebanana_api::api::{download_mod, get_mod_files};
 use crate::gamebanana_api::types::FileEntry;
 use crate::types::{CompressedFileType, DeadlockMod, ModOperation, Mods, Preset};
 use crate::utils::{
     aspect_ratio_to_fov, fov_to_aspect_ratio, generate_uuid, is_deadlock_path_valid, is_mod_loaded,
-    list_vpk_files, process_mod_directory, sort_mods, update_config_mod_file_name, VALID_MOD_REGEX,
+    list_vpk_files, process_mod_directory, sort_mods, update_config_mod_file_name,
 };
-use futures_util::TryFutureExt;
 use rand::RngExt;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
@@ -955,6 +954,7 @@ pub async fn download_gameconfigs(
 ) -> Result<Vec<GameConfig>, String> {
     let cache_dir = state.cache_path.clone();
     let gameconfigs_cache_dir = cache_dir.join("gameconfigs");
+    std::fs::create_dir_all(gameconfigs_cache_dir.clone()).map_err(|e| e.to_string())?;
     std::fs::remove_dir_all(gameconfigs_cache_dir.clone()).map_err(|e| e.to_string())?;
     std::fs::create_dir_all(gameconfigs_cache_dir.clone()).map_err(|e| e.to_string())?;
     let client = reqwest::Client::new();
