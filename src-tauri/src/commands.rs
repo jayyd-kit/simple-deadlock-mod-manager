@@ -941,12 +941,14 @@ static GAME_CONFIG_DOWNLOAD_INFO: &[GameconfigDownloadInfo] = &[
 ];
 
 #[tauri::command]
-pub async fn download_gameconfigs(state: State<'_, ConfigState>) -> Result<Vec<String>, String> {
+pub async fn download_gameconfigs(
+    state: State<'_, ConfigState>,
+) -> Result<Vec<GameConfig>, String> {
     let cache_dir = state.cache_path.clone();
     let gameconfigs_cache_dir = cache_dir.join("gameconfigs");
     std::fs::create_dir_all(gameconfigs_cache_dir.clone()).map_err(|e| e.to_string())?;
     let client = reqwest::Client::new();
-    let mut paths: Vec<String> = Vec::new();
+    let mut game_configs: Vec<GameConfig> = Vec::new();
     for gameconfig in GAME_CONFIG_DOWNLOAD_INFO {
         let response = client
             .get(gameconfig.url)
@@ -958,12 +960,18 @@ pub async fn download_gameconfigs(state: State<'_, ConfigState>) -> Result<Vec<S
             .map_err(|e| e.to_string())?;
         let download_path =
             gameconfigs_cache_dir.join(gameconfig.name.to_owned() + "/gameconfig.gi");
-        paths.push(download_path.to_str().unwrap().to_string());
+        game_configs.push(GameConfig {
+            path: gameconfigs_cache_dir
+                .join(gameconfig.name.to_owned() + "/gameconfig.gi")
+                .to_string_lossy()
+                .to_string(),
+            name: gameconfig.name.to_owned(),
+        });
         tokio::fs::write(&download_path, bytes)
             .await
             .map_err(|e| e.to_string())?;
     }
-    Ok(paths)
+    Ok(game_configs)
 }
 
 #[derive(Deserialize, Serialize, Debug)]

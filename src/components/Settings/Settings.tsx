@@ -4,6 +4,7 @@ import {useEffect, useState} from "react";
 import {
     changePath,
     checkGameinfoValidity,
+    GameConfig,
     getAutoDetectDeadlockPath,
     getConfig,
     getFov,
@@ -24,6 +25,7 @@ function Settings({isOpen, onClose}: { isOpen: boolean, onClose: () => void }) {
     const [path, setPath] = useState("");
     const [loading, setLoading] = useState<boolean>(true);
     const [fovInputValue, setFovInputValue] = useState<number>(0);
+    const [gameConfigs, setGameConfigs] = useState<GameConfig[]>([])
     useEffect(() => {
         getSettingsConfig();
     }, [isOpen])
@@ -82,7 +84,9 @@ function Settings({isOpen, onClose}: { isOpen: boolean, onClose: () => void }) {
                                     <ModManagerSettings path={path} setPath={setPath} setValidConfig={setValidConfig}/>
                                     <DeadlockSettings validConfig={validConfig} setValidConfig={setValidConfig}
                                                       fovInputValue={fovInputValue}
-                                                      setFovInputValue={setFovInputValue}/>
+                                                      setFovInputValue={setFovInputValue}
+                                                      setGameConfigs={setGameConfigs}
+                                                      gameConfigs={gameConfigs}/>
                                 </>
                             )}
                         </div>

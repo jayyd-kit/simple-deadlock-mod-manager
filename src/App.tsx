@@ -11,6 +11,7 @@ import DeleteModal from "./components/DeleteModal/DeleteModal.tsx";
 import FileSelectModal from "./components/FileSelect/FileSelectModal.tsx";
 import LoadingSnackBar from "./components/LoadingSnackbar/LoadingSnackBar.tsx";
 import ManageModModal from "./components/Mod/ManageModModal/ManageModModal.tsx";
+import {getGameconfigs} from "./generated";
 
 
 function App() {
@@ -26,6 +27,7 @@ function App() {
     const getMods = async () => {
         try {
             setMods(await getModsFromRust())
+            await getGameconfigs();
         } catch (error) {
             setVisible(true);
             setError(error as string);

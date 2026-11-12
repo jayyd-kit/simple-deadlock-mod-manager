@@ -1,16 +1,20 @@
 import Button from "../../Button/Button.tsx";
-import {checkGameinfoValidity, makeConfigValid} from "../../../generated";
+import {checkGameinfoValidity, GameConfig, makeConfigValid} from "../../../generated";
 import {useErrorStore} from "../../../stores/useErrorStore.ts";
 import {ChangeEvent, useState} from "react";
 import {KeyboardArrowDown, KeyboardArrowRight} from "@mui/icons-material";
+import CustomGameConfigs from "./CustomGameConfigs/CustomGameConfigs.tsx";
 
-function DeadlockSettings({validConfig, setValidConfig, fovInputValue, setFovInputValue}: {
+function DeadlockSettings({validConfig, setValidConfig, fovInputValue, setFovInputValue, gameConfigs, setGameConfigs}: {
     validConfig: boolean,
     setValidConfig: (validConfig: boolean) => void,
     fovInputValue: number,
-    setFovInputValue: (fovInputValue: number) => void
+    setFovInputValue: (fovInputValue: number) => void,
+    gameConfigs: GameConfig[],
+    setGameConfigs: (gameConfigs) => void,
 }) {
     const {setVisible, setError} = useErrorStore();
+
     const [settingsVisible, setSettingsVisible] = useState(true);
 
     return (
@@ -45,6 +49,7 @@ function DeadlockSettings({validConfig, setValidConfig, fovInputValue, setFovInp
                             }}>Make valid</Button>
                         </div>
                     </div>
+                    <CustomGameConfigs gameConfigs={gameConfigs} setGameConfigs={setGameConfigs}/>
                     <div className="mt-6 text-xl flex flex-col justify-between">
                         <div className="text-xl">Field Of View</div>
                         <div className="flex gap-2">
