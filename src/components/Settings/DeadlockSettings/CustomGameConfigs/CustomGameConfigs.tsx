@@ -1,6 +1,6 @@
-import {ChangeEvent, Dispatch, useEffect} from "react";
+import {ChangeEvent, Dispatch, useEffect, useState} from "react";
 import {useErrorStore} from "../../../../stores/useErrorStore.ts";
-import {GameConfig, getGameconfigs} from "../../../../generated";
+import {downloadGameconfigs, GameConfig, getGameconfigs} from "../../../../generated";
 import Button from "../../../Button/Button.tsx";
 import {useSettingsStore} from "../../../../stores/useSettingsStore.ts";
 
@@ -10,13 +10,16 @@ function CustomGameConfigs({gameConfigs, setGameConfigs}: {
 }) {
     const {setChosenGameConfig} = useSettingsStore();
     const {setVisible, setError} = useErrorStore();
+    const [loading, setLoading] = useState(false);
 
 
     const getGameConfigsEffect = async () => {
         try {
+            setLoading(true);
             let gameConfigs = await getGameconfigs();
             gameConfigs = [{path: "", name: "Default"}, ...gameConfigs]
             setGameConfigs(gameConfigs);
+            setLoading(false);
         } catch (e) {
             setVisible(true);
             setError(e as string);
@@ -29,9 +32,11 @@ function CustomGameConfigs({gameConfigs, setGameConfigs}: {
 
     const onDownloadClick = async () => {
         try {
-            let gameConfigs = await getGameconfigs();
+            setLoading(true);
+            let gameConfigs = await downloadGameconfigs();
             gameConfigs = [{path: "", name: "Default"}, ...gameConfigs]
             setGameConfigs(gameConfigs);
+            setLoading(false);
         } catch (e) {
             setVisible(true);
             setError(e as string);
@@ -52,7 +57,7 @@ function CustomGameConfigs({gameConfigs, setGameConfigs}: {
         <div className="mt-8 text-xl">
             <label className="block mb-2">Custom Game Configs</label>
             <div className="flex w-full justify-between">
-                <select onChange={onSelectChange} className="w-60 text-black text-sm">
+                <select disabled={loading} onChange={onSelectChange} className="w-60 text-black text-sm">
                     {gameConfigs.map((gameConfig: GameConfig) => (
                         <option value={gameConfig.name}>{gameConfig.name}</option>
                     ))}

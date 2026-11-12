@@ -843,31 +843,12 @@ pub async fn get_fov(state: State<'_, ConfigState>) -> Result<i32, String> {
         return Err("Could not find gameinfo.gi".to_string());
     }
     let r = Regex::new(ASPECT_RATIO_REGEX).unwrap();
-    let mut config_content = std::fs::read_to_string(&gameinfo_path).map_err(|e| e.to_string())?;
-    let mut aspect_ratio = r
+    let config_content = std::fs::read_to_string(&gameinfo_path).map_err(|e| e.to_string())?;
+    let aspect_ratio = r
         .captures(config_content.as_str())
         .and_then(|c| c.get(2).map(|m| m.as_str().to_string()));
     if aspect_ratio.is_none() {
-        log::warn!("Could not find aspect ratio");
-        if let Some(start_idx) = config_content.find("ConVars") {
-            let mut insert_idx = start_idx;
-
-            // move two lines down
-            for _ in 0..2 {
-                if let Some(newline_idx) = config_content[insert_idx..].find('\n') {
-                    insert_idx += newline_idx + 1;
-                } else {
-                    break;
-                }
-            }
-
-            config_content.insert_str(
-                insert_idx,
-                format!("        r_aspectratio \"{}\"\n", fov_to_aspect_ratio(90)).as_str(),
-            );
-            std::fs::write(gameinfo_path, config_content).map_err(|e| e.to_string())?;
-            aspect_ratio = Some(fov_to_aspect_ratio(90).to_string());
-        }
+        return Ok(90);
     }
     let aspect_ratio = aspect_ratio
         .unwrap()
@@ -893,7 +874,31 @@ pub async fn set_fov(state: State<'_, ConfigState>, new_fov: i32) -> Result<(), 
         return Err("Could not find gameinfo.gi".to_string());
     }
     let r = Regex::new(ASPECT_RATIO_REGEX).unwrap();
-    let config_content = std::fs::read_to_string(&gameinfo_path).map_err(|e| e.to_string())?;
+    let mut config_content = std::fs::read_to_string(&gameinfo_path).map_err(|e| e.to_string())?;
+    let aspect_ratio = r
+        .captures(config_content.as_str())
+        .and_then(|c| c.get(2).map(|m| m.as_str().to_string()));
+    if aspect_ratio.is_none() {
+        log::warn!("Could not find aspect ratio");
+        if let Some(start_idx) = config_content.find("ConVars") {
+            let mut insert_idx = start_idx;
+
+            // move two lines down
+            for _ in 0..2 {
+                if let Some(newline_idx) = config_content[insert_idx..].find('\n') {
+                    insert_idx += newline_idx + 1;
+                } else {
+                    break;
+                }
+            }
+
+            config_content.insert_str(
+                insert_idx,
+                format!("        r_aspectratio \"{}\"\n", fov_to_aspect_ratio(90)).as_str(),
+            );
+            std::fs::write(&gameinfo_path, &config_content).map_err(|e| e.to_string())?;
+        }
+    }
     let aspect_ratio = fov_to_aspect_ratio(new_fov);
     let result = r
         .replace(config_content.as_str(), |caps: &regex::Captures| {
@@ -911,12 +916,16 @@ struct GameconfigDownloadInfo {
 
 static GAME_CONFIG_DOWNLOAD_INFO: &[GameconfigDownloadInfo] = &[
     GameconfigDownloadInfo {
-        name: "Eskay's Config",
+        name: "Eskay's config",
         url: "https://github.com/Sqooky/OptimizationLock/raw/refs/heads/main/Eskay's%20config/gameinfo.gi",
     },
     GameconfigDownloadInfo {
         name: "Piggy's config",
         url: "https://github.com/Sqooky/OptimizationLock/raw/refs/heads/main/Piggy's%20config/gameinfo.gi",
+    },
+    GameconfigDownloadInfo {
+        name: "Sqooky's config",
+        url: "https://github.com/Sqooky/OptimizationLock/raw/refs/heads/main/Sqooky's%20.gi/gameinfo.gi",
     },
     GameconfigDownloadInfo {
         name: "boot's maximum fps config",
