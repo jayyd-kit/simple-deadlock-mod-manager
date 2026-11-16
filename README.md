@@ -55,8 +55,8 @@ Go to the [Releases Page](https://github.com/Gabri3445/simple-deadlock-mod-manag
 - [x] Mod Presets
 - [x] Gameconfigs from https://github.com/Sqooky/OptimizationLock
 - [x] Gameconfig convars:
-  - [x] Field of view
-  - [x] Health bar numbers
+    - [x] Field of view
+    - [x] Health bar numbers
 - [ ] Check for mod updates
 
 ## Not Planned (For now)
