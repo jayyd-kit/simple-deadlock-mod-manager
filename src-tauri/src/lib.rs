@@ -102,6 +102,7 @@ pub fn run() {
             commands::apply_preset,
             commands::delete_preset,
             commands::get_fov,
+            commands::get_con_var,
             commands::set_fov,
             commands::download_gameconfigs,
             commands::get_gameconfigs,

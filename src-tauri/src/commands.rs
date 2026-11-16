@@ -830,7 +830,7 @@ pub async fn delete_preset(state: State<'_, ConfigState>, id: String) -> Result<
     Ok(())
 }
 
-const ASPECT_RATIO_REGEX: &str = r#"(r_aspectratio)\s*"(\d*\.?\d*)""#;
+const ASPECT_RATIO_REGEX: &str = r#"/?/?(r_aspectratio)\s*"(\d*\.?\d*)""#;
 #[tauri::command]
 pub async fn get_fov(state: State<'_, ConfigState>) -> Result<i32, String> {
     let config = state.config.lock().map_err(|e| e.to_string())?;
@@ -844,10 +844,17 @@ pub async fn get_fov(state: State<'_, ConfigState>) -> Result<i32, String> {
     }
     let r = Regex::new(ASPECT_RATIO_REGEX).unwrap();
     let config_content = std::fs::read_to_string(&gameinfo_path).map_err(|e| e.to_string())?;
-    let aspect_ratio = r
-        .captures(config_content.as_str())
-        .and_then(|c| c.get(2).map(|m| m.as_str().to_string()));
-    if aspect_ratio.is_none() {
+    let captures = r.captures(config_content.as_str());
+    //.and_then(|c| c.get(2).map(|m| m.as_str().to_string()));
+    if captures.is_none() {
+        return Ok(90);
+    }
+    let captures = captures.unwrap();
+    if captures.get(0).unwrap().as_str().starts_with("//") {
+        return Ok(90);
+    }
+    let aspect_ratio = captures.get(2).map(|x| x.as_str()).ok_or("Error");
+    if aspect_ratio.is_err() {
         return Ok(90);
     }
     let aspect_ratio = aspect_ratio
@@ -860,6 +867,34 @@ pub async fn get_fov(state: State<'_, ConfigState>) -> Result<i32, String> {
         aspect_ratio_to_fov(aspect_ratio)
     );
     Ok(aspect_ratio_to_fov(aspect_ratio))
+}
+
+#[tauri::command]
+pub async fn get_con_var(
+    con_var_name: String,
+    state: State<'_, ConfigState>,
+) -> Result<Option<String>, String> {
+    let config = state.config.lock().map_err(|e| e.to_string())?;
+    let gameinfo_path = PathBuf::from(config.deadlock_path.clone())
+        .join("game")
+        .join("citadel")
+        .join("gameinfo.gi");
+    if !gameinfo_path.is_file() {
+        log::error!("Gameinfo path is not a file");
+        return Err("Could not find gameinfo.gi".to_string());
+    }
+    let r = Regex::new(format!(r#"/?/?({})\s*"(\d*\.?\d*)""#, con_var_name).as_str()).unwrap();
+    let config_content = std::fs::read_to_string(&gameinfo_path).map_err(|e| e.to_string())?;
+    let captures = r.captures(config_content.as_str());
+    if captures.is_none() {
+        return Ok(None);
+    }
+    let captures = captures.unwrap();
+    if captures.get(0).unwrap().as_str().starts_with("//") {
+        return Ok(None);
+    }
+    let con_var = captures.get(2).map(|x| x.as_str().to_string());
+    Ok(con_var)
 }
 
 #[tauri::command]
