@@ -52,8 +52,11 @@ Go to the [Releases Page](https://github.com/Gabri3445/simple-deadlock-mod-manag
 - [x] Drag and drop
 - [x] Load `.vpk` files directly from `.zip` or `.rar` archives
 - [x] Download mods directly from **GameBanana**
-- [x] Presets
-- [x] In-game Field Of View
+- [x] Mod Presets
+- [x] Gameconfigs from https://github.com/Sqooky/OptimizationLock
+- [x] Gameconfig convars:
+  - [x] Field of view
+  - [x] Health bar numbers
 - [ ] Check for mod updates
 
 ## Not Planned (For now)
