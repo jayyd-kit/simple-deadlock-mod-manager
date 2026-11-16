@@ -5,13 +5,24 @@ import {ChangeEvent, Dispatch, useState} from "react";
 import {KeyboardArrowDown, KeyboardArrowRight} from "@mui/icons-material";
 import CustomGameConfigs from "./CustomGameConfigs/CustomGameConfigs.tsx";
 
-function DeadlockSettings({validConfig, setValidConfig, fovInputValue, setFovInputValue, gameConfigs, setGameConfigs}: {
+function DeadlockSettings({
+                              validConfig,
+                              setValidConfig,
+                              fovInputValue,
+                              setFovInputValue,
+                              gameConfigs,
+                              setGameConfigs,
+                              alwaysShowHealthNumbers,
+                              setAlwaysShowHealthNumbers
+                          }: {
     validConfig: boolean,
     setValidConfig: (validConfig: boolean) => void,
     fovInputValue: number,
     setFovInputValue: (fovInputValue: number) => void,
     gameConfigs: GameConfig[],
-    setGameConfigs: Dispatch<GameConfig[]>
+    setGameConfigs: Dispatch<GameConfig[]>,
+    alwaysShowHealthNumbers: boolean,
+    setAlwaysShowHealthNumbers: Dispatch<boolean>,
 }) {
     const {setVisible, setError} = useErrorStore();
 
@@ -50,8 +61,8 @@ function DeadlockSettings({validConfig, setValidConfig, fovInputValue, setFovInp
                         </div>
                     </div>
                     <CustomGameConfigs gameConfigs={gameConfigs} setGameConfigs={setGameConfigs}/>
-                    <div className="mt-6 text-xl flex flex-col justify-between">
-                        <div className="text-xl">Field Of View</div>
+                    <div className="mt-8 text-xl flex flex-col justify-between">
+                        <div className="text-xl mb-2">Field Of View</div>
                         <div className="flex gap-2">
                             <input
                                 value={fovInputValue}
@@ -61,6 +72,16 @@ function DeadlockSettings({validConfig, setValidConfig, fovInputValue, setFovInp
                                 className={"no-spinner bg-gray-800 border border-default-medium rounded-xs text-center w-20"}
                                 type={"number"}/>
                         </div>
+                    </div>
+                    <div className="mt-8 text-xl flex gap-2 justify-between">
+                        <div className="text-xl">Always display health numbers</div>
+                        <input
+                            checked={alwaysShowHealthNumbers}
+                            onChange={(e: ChangeEvent<HTMLInputElement>) => {
+                                setAlwaysShowHealthNumbers(e.target.checked)
+                            }}
+                            className={"w-6 h-6 border border-default-medium rounded-xs bg-neutral-secondary-medium focus:ring-2 focus:ring-brand-soft"}
+                            type={"checkbox"}/>
                     </div>
                 </>
             )}

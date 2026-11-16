@@ -843,7 +843,7 @@ pub async fn get_con_var(
         log::error!("Gameinfo path is not a file");
         return Err("Could not find gameinfo.gi".to_string());
     }
-    let r = Regex::new(format!(r#"/?/?({})\s*"([^"]*)""#, con_var_name).as_str()).unwrap();
+    let r = Regex::new(format!(r#"/?/?\s*({})\s*"([^"]*)""#, con_var_name).as_str()).unwrap();
     let config_content = std::fs::read_to_string(&gameinfo_path).map_err(|e| e.to_string())?;
     let captures = r.captures(config_content.as_str());
     if captures.is_none() {
@@ -872,10 +872,10 @@ pub async fn set_con_var(
         log::error!("Gameinfo path is not a file");
         return Err("Could not find gameinfo.gi".to_string());
     }
-    let r = Regex::new(format!(r#"/?/?({})\s*"([^"]*)""#, con_var_name).as_str()).unwrap();
+    let r = Regex::new(format!(r#"/?/?\s({})\s*"([^"]*)""#, con_var_name).as_str()).unwrap();
     let mut config_content = std::fs::read_to_string(&gameinfo_path).map_err(|e| e.to_string())?;
     let captures = r.captures(config_content.as_str());
-    if captures.is_none() {
+    if captures.is_none() || captures.unwrap().get(0).unwrap().as_str().starts_with("//") {
         if let Some(start_idx) = config_content.find("ConVars") {
             let mut insert_idx = start_idx;
 
@@ -891,7 +891,7 @@ pub async fn set_con_var(
             config_content.insert_str(
                 insert_idx,
                 format!(
-                    "        {0} \"{1}\"\n",
+                    "          {0} \"{1}\"\n",
                     con_var_name,
                     fov_to_aspect_ratio(90)
                 )
@@ -902,7 +902,7 @@ pub async fn set_con_var(
     }
     let result = r
         .replace(config_content.as_str(), |caps: &regex::Captures| {
-            format!("{0} \"{1}\"", &caps[1], new_value)
+            format!(" {0} \"{1}\"", &caps[1], new_value)
         })
         .to_string();
     std::fs::write(gameinfo_path, result).map_err(|e| e.to_string())?;

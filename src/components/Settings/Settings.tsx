@@ -33,6 +33,7 @@ function Settings({isOpen, onClose}: { isOpen: boolean, onClose: () => void }) {
     const [path, setPath] = useState("");
     const [loading, setLoading] = useState<boolean>(true);
     const [fovInputValue, setFovInputValue] = useState<number>(0);
+    const [alwaysShowHealthNumbers, setAlwaysShowHealthNumbers] = useState<boolean>(false);
     const [gameConfigs, setGameConfigs] = useState<GameConfig[]>([])
     useEffect(() => {
         getSettingsConfig();
@@ -54,6 +55,14 @@ function Settings({isOpen, onClose}: { isOpen: boolean, onClose: () => void }) {
             setValidConfig(await checkGameinfoValidity())
             const aspectRatio = Number(await getConVar({conVarName: "r_aspectratio"}) ?? fovToAspectRatio(90));
             setFovInputValue(aspectRatioToFov(aspectRatio));
+            const citadelUnitStatusRecentDamageTime =
+                await getConVar({conVarName: "citadel_unit_status_recent_damage_time"});
+            console.log(citadelUnitStatusRecentDamageTime)
+            if (citadelUnitStatusRecentDamageTime && citadelUnitStatusRecentDamageTime == "inf") {
+                setAlwaysShowHealthNumbers(true);
+            } else {
+                setAlwaysShowHealthNumbers(false);
+            }
         } catch (e) {
             setVisible(true);
             setError(e as string);
@@ -72,6 +81,14 @@ function Settings({isOpen, onClose}: { isOpen: boolean, onClose: () => void }) {
             await setConfig({newConfig: config});
             const aspectRatio = fovToAspectRatio(fovInputValue);
             await setConVar({conVarName: "r_aspectratio", newValue: aspectRatio.toString()});
+            switch (alwaysShowHealthNumbers) {
+                case true:
+                    await setConVar({conVarName: "citadel_unit_status_recent_damage_time", newValue: "inf"})
+                    break;
+                case false:
+                    await setConVar({conVarName: "citadel_unit_status_recent_damage_time", newValue: "0.25"})
+                    break;
+            }
             setMods(await getModsFromRust());
             onClose();
         } catch (e) {
@@ -97,6 +114,8 @@ function Settings({isOpen, onClose}: { isOpen: boolean, onClose: () => void }) {
                                                       fovInputValue={fovInputValue}
                                                       setFovInputValue={setFovInputValue}
                                                       setGameConfigs={setGameConfigs}
+                                                      alwaysShowHealthNumbers={alwaysShowHealthNumbers}
+                                                      setAlwaysShowHealthNumbers={setAlwaysShowHealthNumbers}
                                                       gameConfigs={gameConfigs}/>
                                 </>
                             )}
