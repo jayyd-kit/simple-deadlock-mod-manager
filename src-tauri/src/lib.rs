@@ -104,6 +104,7 @@ pub fn run() {
             commands::get_fov,
             commands::get_con_var,
             commands::set_fov,
+            commands::set_con_var,
             commands::download_gameconfigs,
             commands::get_gameconfigs,
             commands::set_gameconfig,
