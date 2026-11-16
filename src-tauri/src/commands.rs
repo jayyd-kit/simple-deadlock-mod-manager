@@ -3,8 +3,8 @@ use crate::gamebanana_api::api::{download_mod, get_mod_files};
 use crate::gamebanana_api::types::FileEntry;
 use crate::types::{CompressedFileType, DeadlockMod, ModOperation, Mods, Preset};
 use crate::utils::{
-    aspect_ratio_to_fov, fov_to_aspect_ratio, generate_uuid, is_deadlock_path_valid, is_mod_loaded,
-    list_vpk_files, process_mod_directory, sort_mods, update_config_mod_file_name,
+    fov_to_aspect_ratio, generate_uuid, is_deadlock_path_valid, is_mod_loaded, list_vpk_files,
+    process_mod_directory, sort_mods, update_config_mod_file_name,
 };
 use rand::RngExt;
 use regex::Regex;
@@ -829,9 +829,11 @@ pub async fn delete_preset(state: State<'_, ConfigState>, id: String) -> Result<
     Ok(())
 }
 
-const ASPECT_RATIO_REGEX: &str = r#"(r_aspectratio)\s*"(\d*\.?\d*)""#;
 #[tauri::command]
-pub async fn get_fov(state: State<'_, ConfigState>) -> Result<i32, String> {
+pub async fn get_con_var(
+    con_var_name: String,
+    state: State<'_, ConfigState>,
+) -> Result<Option<String>, String> {
     let config = state.config.lock().map_err(|e| e.to_string())?;
     let gameinfo_path = PathBuf::from(config.deadlock_path.clone())
         .join("game")
@@ -841,28 +843,26 @@ pub async fn get_fov(state: State<'_, ConfigState>) -> Result<i32, String> {
         log::error!("Gameinfo path is not a file");
         return Err("Could not find gameinfo.gi".to_string());
     }
-    let r = Regex::new(ASPECT_RATIO_REGEX).unwrap();
+    let r = Regex::new(format!(r#"/?/?\s*({})\s*"([^"]*)""#, con_var_name).as_str()).unwrap();
     let config_content = std::fs::read_to_string(&gameinfo_path).map_err(|e| e.to_string())?;
-    let aspect_ratio = r
-        .captures(config_content.as_str())
-        .and_then(|c| c.get(2).map(|m| m.as_str().to_string()));
-    if aspect_ratio.is_none() {
-        return Ok(90);
+    let captures = r.captures(config_content.as_str());
+    if captures.is_none() {
+        return Ok(None);
     }
-    let aspect_ratio = aspect_ratio
-        .unwrap()
-        .parse::<f32>()
-        .map_err(|e| e.to_string())?;
-    log::info!(
-        "Detected Aspect ratio: {0}, Fov: {1}",
-        aspect_ratio,
-        aspect_ratio_to_fov(aspect_ratio)
-    );
-    Ok(aspect_ratio_to_fov(aspect_ratio))
+    let captures = captures.unwrap();
+    if captures.get(0).unwrap().as_str().starts_with("//") {
+        return Ok(None);
+    }
+    let con_var = captures.get(2).map(|x| x.as_str().to_string());
+    Ok(con_var)
 }
 
 #[tauri::command]
-pub async fn set_fov(state: State<'_, ConfigState>, new_fov: i32) -> Result<(), String> {
+pub async fn set_con_var(
+    con_var_name: String,
+    new_value: String,
+    state: State<'_, ConfigState>,
+) -> Result<(), String> {
     let config = state.config.lock().map_err(|e| e.to_string())?;
     let gameinfo_path = PathBuf::from(config.deadlock_path.clone())
         .join("game")
@@ -872,13 +872,10 @@ pub async fn set_fov(state: State<'_, ConfigState>, new_fov: i32) -> Result<(), 
         log::error!("Gameinfo path is not a file");
         return Err("Could not find gameinfo.gi".to_string());
     }
-    let r = Regex::new(ASPECT_RATIO_REGEX).unwrap();
+    let r = Regex::new(format!(r#"/?/?\s({})\s*"([^"]*)""#, con_var_name).as_str()).unwrap();
     let mut config_content = std::fs::read_to_string(&gameinfo_path).map_err(|e| e.to_string())?;
-    let aspect_ratio = r
-        .captures(config_content.as_str())
-        .and_then(|c| c.get(2).map(|m| m.as_str().to_string()));
-    if aspect_ratio.is_none() {
-        log::warn!("Could not find aspect ratio");
+    let captures = r.captures(config_content.as_str());
+    if captures.is_none() || captures.unwrap().get(0).unwrap().as_str().starts_with("//") {
         if let Some(start_idx) = config_content.find("ConVars") {
             let mut insert_idx = start_idx;
 
@@ -893,15 +890,19 @@ pub async fn set_fov(state: State<'_, ConfigState>, new_fov: i32) -> Result<(), 
 
             config_content.insert_str(
                 insert_idx,
-                format!("        r_aspectratio \"{}\"\n", fov_to_aspect_ratio(90)).as_str(),
+                format!(
+                    "          {0} \"{1}\"\n",
+                    con_var_name,
+                    fov_to_aspect_ratio(90)
+                )
+                .as_str(),
             );
             std::fs::write(&gameinfo_path, &config_content).map_err(|e| e.to_string())?;
         }
     }
-    let aspect_ratio = fov_to_aspect_ratio(new_fov);
     let result = r
         .replace(config_content.as_str(), |caps: &regex::Captures| {
-            format!("{} \"{}\"", &caps[1], aspect_ratio)
+            format!(" {0} \"{1}\"", &caps[1], new_value)
         })
         .to_string();
     std::fs::write(gameinfo_path, result).map_err(|e| e.to_string())?;
@@ -954,7 +955,6 @@ pub async fn download_gameconfigs(
 ) -> Result<Vec<GameConfig>, String> {
     let cache_dir = state.cache_path.clone();
     let gameconfigs_cache_dir = cache_dir.join("gameconfigs");
-    std::fs::create_dir_all(gameconfigs_cache_dir.clone()).map_err(|e| e.to_string())?;
     std::fs::remove_dir_all(gameconfigs_cache_dir.clone()).map_err(|e| e.to_string())?;
     std::fs::create_dir_all(gameconfigs_cache_dir.clone()).map_err(|e| e.to_string())?;
     let client = reqwest::Client::new();

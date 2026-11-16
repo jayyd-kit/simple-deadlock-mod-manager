@@ -7,9 +7,9 @@ import {
     GameConfig,
     getAutoDetectDeadlockPath,
     getConfig,
-    getFov,
+    getConVar,
     setConfig,
-    setFov,
+    setConVar,
     setGameconfig
 } from "../../generated";
 import {useModsStore} from "../../stores/useModsStore.ts";
@@ -17,6 +17,7 @@ import {useErrorStore} from "../../stores/useErrorStore.ts";
 import {useSettingsStore} from "../../stores/useSettingsStore.ts";
 import ModManagerSettings from "./ModManagerSettings/ModManagerSettings.tsx";
 import DeadlockSettings from "./DeadlockSettings/DeadlockSettings.tsx";
+import {aspectRatioToFov, fovToAspectRatio} from "../../utils/convars.ts";
 
 function Settings({isOpen, onClose}: { isOpen: boolean, onClose: () => void }) {
     const {setVisible, setError} = useErrorStore();
@@ -32,6 +33,7 @@ function Settings({isOpen, onClose}: { isOpen: boolean, onClose: () => void }) {
     const [path, setPath] = useState("");
     const [loading, setLoading] = useState<boolean>(true);
     const [fovInputValue, setFovInputValue] = useState<number>(0);
+    const [alwaysShowHealthNumbers, setAlwaysShowHealthNumbers] = useState<boolean>(false);
     const [gameConfigs, setGameConfigs] = useState<GameConfig[]>([])
     useEffect(() => {
         getSettingsConfig();
@@ -51,7 +53,16 @@ function Settings({isOpen, onClose}: { isOpen: boolean, onClose: () => void }) {
             setFileNameAlwaysVisible(config.settings.always_show_file_names)
             setSortMethod(config.settings.sort_method)
             setValidConfig(await checkGameinfoValidity())
-            setFovInputValue(await getFov());
+            const aspectRatio = Number(await getConVar({conVarName: "r_aspectratio"}) ?? fovToAspectRatio(90));
+            setFovInputValue(aspectRatioToFov(aspectRatio));
+            const citadelUnitStatusRecentDamageTime =
+                await getConVar({conVarName: "citadel_unit_status_recent_damage_time"});
+            console.log(citadelUnitStatusRecentDamageTime)
+            if (citadelUnitStatusRecentDamageTime && citadelUnitStatusRecentDamageTime == "inf") {
+                setAlwaysShowHealthNumbers(true);
+            } else {
+                setAlwaysShowHealthNumbers(false);
+            }
         } catch (e) {
             setVisible(true);
             setError(e as string);
@@ -68,7 +79,16 @@ function Settings({isOpen, onClose}: { isOpen: boolean, onClose: () => void }) {
             config.settings.sort_method = sortMethod;
             await setGameconfig({newGameConfig: chosenGameConfig})
             await setConfig({newConfig: config});
-            await setFov({newFov: fovInputValue});
+            const aspectRatio = fovToAspectRatio(fovInputValue);
+            await setConVar({conVarName: "r_aspectratio", newValue: aspectRatio.toString()});
+            switch (alwaysShowHealthNumbers) {
+                case true:
+                    await setConVar({conVarName: "citadel_unit_status_recent_damage_time", newValue: "inf"})
+                    break;
+                case false:
+                    await setConVar({conVarName: "citadel_unit_status_recent_damage_time", newValue: "0.25"})
+                    break;
+            }
             setMods(await getModsFromRust());
             onClose();
         } catch (e) {
@@ -94,6 +114,8 @@ function Settings({isOpen, onClose}: { isOpen: boolean, onClose: () => void }) {
                                                       fovInputValue={fovInputValue}
                                                       setFovInputValue={setFovInputValue}
                                                       setGameConfigs={setGameConfigs}
+                                                      alwaysShowHealthNumbers={alwaysShowHealthNumbers}
+                                                      setAlwaysShowHealthNumbers={setAlwaysShowHealthNumbers}
                                                       gameConfigs={gameConfigs}/>
                                 </>
                             )}
