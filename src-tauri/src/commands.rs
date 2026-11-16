@@ -1,12 +1,11 @@
-use crate::config::{save_config, ConfigState, ModManagerConfigV2, SortMethod};
+use crate::config::{save_config, ConfigState, ModManagerConfigV2};
 use crate::gamebanana_api::api::{download_mod, get_mod_files};
 use crate::gamebanana_api::types::FileEntry;
 use crate::types::{CompressedFileType, DeadlockMod, ModOperation, Mods, Preset};
 use crate::utils::{
-    aspect_ratio_to_fov, fov_to_aspect_ratio, generate_uuid, is_deadlock_path_valid, is_mod_loaded,
-    list_vpk_files, process_mod_directory, sort_mods, update_config_mod_file_name, VALID_MOD_REGEX,
+    fov_to_aspect_ratio, generate_uuid, is_deadlock_path_valid, is_mod_loaded, list_vpk_files,
+    process_mod_directory, sort_mods, update_config_mod_file_name,
 };
-use futures_util::TryFutureExt;
 use rand::RngExt;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
@@ -844,7 +843,7 @@ pub async fn get_con_var(
         log::error!("Gameinfo path is not a file");
         return Err("Could not find gameinfo.gi".to_string());
     }
-    let r = Regex::new(format!(r#"/?/?({})\s*"(\d*\.?\d*)""#, con_var_name).as_str()).unwrap();
+    let r = Regex::new(format!(r#"/?/?({})\s*"([^"]*)""#, con_var_name).as_str()).unwrap();
     let config_content = std::fs::read_to_string(&gameinfo_path).map_err(|e| e.to_string())?;
     let captures = r.captures(config_content.as_str());
     if captures.is_none() {
@@ -873,7 +872,7 @@ pub async fn set_con_var(
         log::error!("Gameinfo path is not a file");
         return Err("Could not find gameinfo.gi".to_string());
     }
-    let r = Regex::new(format!(r#"/?/?({})\s*"(\d*\.?\d*)""#, con_var_name).as_str()).unwrap();
+    let r = Regex::new(format!(r#"/?/?({})\s*"([^"]*)""#, con_var_name).as_str()).unwrap();
     let mut config_content = std::fs::read_to_string(&gameinfo_path).map_err(|e| e.to_string())?;
     let captures = r.captures(config_content.as_str());
     if captures.is_none() {
