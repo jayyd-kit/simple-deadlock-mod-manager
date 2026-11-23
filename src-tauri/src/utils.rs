@@ -1,9 +1,8 @@
-use crate::config::{save_config, ConfigState, ModManagerConfigV2, SortMethod};
+use crate::config::{ModManagerConfigV2, SortMethod};
 use crate::types::{DeadlockMod, ModOperation, Mods};
 use regex::Regex;
 use std::path::{Path, PathBuf};
 use std::sync::MutexGuard;
-use tauri::State;
 use uuid::Uuid;
 
 /// Updates the file name in the config when it is changed (load/unload)
@@ -140,9 +139,11 @@ pub fn sort_mods(mods: &mut Vec<DeadlockMod>, sort_mode: SortMethod) {
             SortMethod::PakNumber => {
                 let sort_regex = Regex::new(r"\d*_?pak(\d\d)_dir\.vpk$").unwrap();
                 mods.sort_by_cached_key(|m| {
-                    sort_regex.captures(&m.file_name).unwrap()[1]
-                        .parse::<i32>()
-                        .unwrap()
+                    let captures = sort_regex.captures(&m.file_name);
+                    match captures {
+                        Some(captures) => captures.get(1).unwrap().as_str().parse::<i32>().unwrap(),
+                        None => 0, //TODO: maybe sort by name?
+                    }
                 })
             }
             SortMethod::UserName => {
