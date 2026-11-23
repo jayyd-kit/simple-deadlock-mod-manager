@@ -2,6 +2,7 @@
 
 use crate::config::{load_config, ConfigState};
 use directories::ProjectDirs;
+use std::backtrace::Backtrace;
 use std::sync::Mutex;
 use tauri::Manager;
 
@@ -47,6 +48,15 @@ fn nvidia_bug_fix() {
     }
 }
 
+fn set_panic_hook() {
+    std::panic::set_hook(Box::new(|info| {
+        let backtrace = Backtrace::force_capture();
+
+        log::error!("PANIC: {}", info);
+        log::error!("Backtrace:\n{}", backtrace.to_string());
+    }))
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     #[cfg(target_os = "linux")]
@@ -68,6 +78,7 @@ pub fn run() {
         .plugin(tauri_plugin_http::init())
         .setup(|app| {
             log::info!("Starting app");
+            set_panic_hook();
             if let Some(proj_dirs) = ProjectDirs::from("", "sdmm", "sdmm") {
                 let config_dir = proj_dirs.config_dir().join("config.json");
                 let cache_dir = proj_dirs.cache_dir();
